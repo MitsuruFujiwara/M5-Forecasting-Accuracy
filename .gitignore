@@ -1,0 +1,6 @@
+/output
+/input
+/src/.ipynb_checkpoints/
+/src/__pycache__/
+/feats/*.feather
+/feats/*.pkl
