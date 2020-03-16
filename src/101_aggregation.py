@@ -24,12 +24,15 @@ def main():
 
     # melt sales data
     id_vars = ['id','item_id','dept_id','cat_id','store_id','state_id']
-    df = pd.melt(df,id_vars=id_vars,var_name='day',value_name='demand')
+    df = pd.melt(df,id_vars=id_vars,var_name='d',value_name='demand')
 
     print('Melted sales train validation has {} rows and {} columns'.format(df.shape[0], df.shape[1]))
 
     # reduce memory usage
     df = reduce_mem_usage(df)
+
+    # merge calendar
+    df = df.merge(df_calendar, on='d',how='left')
 
     # TODO: merge & feature engineering
 
