@@ -1,0 +1,28 @@
+{
+    "features": [
+        "index",
+        "id",
+        "item_id",
+        "dept_id",
+        "cat_id",
+        "store_id",
+        "state_id",
+        "d",
+        "demand",
+        "is_test",
+        "date",
+        "wm_yr_wk",
+        "wday",
+        "month",
+        "year",
+        "event_name_1",
+        "event_type_1",
+        "event_name_2",
+        "event_type_2",
+        "snap_CA",
+        "snap_TX",
+        "snap_WI",
+        "seasonality",
+        "sell_price"
+    ]
+}
