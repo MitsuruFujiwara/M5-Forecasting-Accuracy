@@ -19,6 +19,7 @@ def main(is_eval=False):
     df = pd.read_csv('../input/sell_prices.csv')
 
     # TODO: feature engineering
+    # TODO: moving average?
 
     # save pkl
     save2pkl('../feats/sell_prices.pkl', df)

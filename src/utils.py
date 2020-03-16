@@ -9,12 +9,16 @@ import pickle
 from multiprocessing import Pool, cpu_count
 from sklearn.metrics import mean_squared_error
 from time import time, sleep
+from tqdm import tqdm
 
 NUM_FOLDS = 5
 
-FEATS_EXCLUDED = []
+FEATS_EXCLUDED = ['id','item_id','dept_id','cat_id','store_id','state_id','d','date','is_test']
 
 COMPETITION_NAME = 'm5-forecasting-accuracy'
+
+COLS_TEST1 = [f'd_{i}' for i in range(1914,1942)]
+COLS_TEST2 = [f'd_{i}' for i in range(1942,1970)]
 
 # to feather
 def to_feature(df, path):
@@ -86,8 +90,9 @@ def loadpkl(path):
 # reduce memory usage
 def reduce_mem_usage(df, verbose=True):
     numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-    start_mem = df.memory_usage().sum() / 1024**2
-    for col in df.columns:
+    start_mem = df.memory_usage(deep=True).sum() / 1024**2
+    print('Reducing memory usage...')
+    for col in tqdm(df.columns):
         col_type = df[col].dtypes
         if col_type in numerics:
             c_min = df[col].min()
@@ -102,13 +107,10 @@ def reduce_mem_usage(df, verbose=True):
                 elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
                     df[col] = df[col].astype(np.int64)
             else:
-                if c_min > np.finfo(np.float16).min and c_max < np.finfo(np.float16).max:
-                    df[col] = df[col].astype(np.float16)
-                elif c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
+                if c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
                     df[col] = df[col].astype(np.float32)
                 else:
                     df[col] = df[col].astype(np.float64)
-    end_mem = df.memory_usage().sum() / 1024**2
+    end_mem = df.memory_usage(deep=True).sum() / 1024**2
     if verbose: print('Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)'.format(end_mem, 100 * (start_mem - end_mem) / start_mem))
     return df
-    

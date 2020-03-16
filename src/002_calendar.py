@@ -18,6 +18,21 @@ def main(is_eval=False):
     # load csv
     df = pd.read_csv('../input/calendar.csv')
 
+    # to datetime
+    df['date'] = pd.to_datetime(df['date'])
+
+    # factorize numerical columns
+    cols_string = ['event_name_1','event_type_1','event_name_2','event_type_2']
+    for c in cols_string:
+        df[c], _ = pd.factorize(df[c])
+        df[c].replace(-1,np.nan,inplace=True)
+
+    # seasonality
+    df['seasonality'] = np.cos(np.pi*(df['date'].dt.dayofyear/366*2-1))
+
+    # drop string columns
+    df.drop('weekday',axis=1,inplace=True)
+
     # TODO: feature engineering
 
     # save pkl
