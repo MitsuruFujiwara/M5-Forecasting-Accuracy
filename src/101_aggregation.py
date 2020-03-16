@@ -18,13 +18,9 @@ warnings.simplefilter(action='ignore')
 
 def main():
     # load pkls
-    df = loadpkl('../feats/sales.pkl')
+    df_sales = loadpkl('../feats/sales.pkl')
     df_sell_prices = loadpkl('../feats/sell_prices.pkl')
     df_calendar = loadpkl('../feats/calendar.pkl')
-
-    # melt sales data
-    id_vars = ['id','item_id','dept_id','cat_id','store_id','state_id']
-    df = pd.melt(df,id_vars=id_vars,var_name='d',value_name='demand')
 
     print('Melted sales train validation has {} rows and {} columns'.format(df.shape[0], df.shape[1]))
 
