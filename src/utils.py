@@ -10,12 +10,11 @@ from multiprocessing import Pool, cpu_count
 from sklearn.metrics import mean_squared_error
 from time import time, sleep
 
-NUM_FOLDS = 11
+NUM_FOLDS = 5
 
-FEATS_EXCLUDED = ['first_active_month', 'target', 'card_id', 'outliers', 'index',
-                  'Outlier_Likelyhood', 'OOF_PRED', 'outliers_pred']
+FEATS_EXCLUDED = []
 
-COMPETITION_NAME = 'elo-merchant-category-recommendation'
+COMPETITION_NAME = 'm5-forecasting-accuracy'
 
 # to feather
 def to_feature(df, path):
@@ -109,9 +108,7 @@ def reduce_mem_usage(df, verbose=True):
                     df[col] = df[col].astype(np.float32)
                 else:
                     df[col] = df[col].astype(np.float64)
-
     end_mem = df.memory_usage().sum() / 1024**2
-    print('Memory usage after optimization is: {:.2f} MB'.format(end_mem))
-    print('Decreased by {:.1f}%'.format(100 * (start_mem - end_mem) / start_mem))
-
+    if verbose: print('Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)'.format(end_mem, 100 * (start_mem - end_mem) / start_mem))
     return df
+    
