@@ -14,13 +14,14 @@ from tqdm import tqdm
 
 NUM_FOLDS = 5
 
-FEATS_EXCLUDED = ['demand','index','id','item_id','dept_id','cat_id','store_id','state_id',
-                  'd','date','is_test','wm_yr_wk']
+FEATS_EXCLUDED = ['demand','index','id','d','date','is_test','wm_yr_wk']
 
 COMPETITION_NAME = 'm5-forecasting-accuracy'
 
 COLS_TEST1 = [f'd_{i}' for i in range(1914,1942)]
 COLS_TEST2 = [f'd_{i}' for i in range(1942,1970)]
+
+DAYS_PRED = 28
 
 # to feather
 def to_feature(df, path):

@@ -9,6 +9,8 @@
         "state_id",
         "d",
         "demand",
+        "demand_shift_28",
+        "demand_shift_365",
         "date",
         "wm_yr_wk",
         "wday",

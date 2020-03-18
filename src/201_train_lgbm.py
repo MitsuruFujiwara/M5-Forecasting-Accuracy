@@ -128,7 +128,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         gc.collect()
 
     # Full RMSE score and LINE Notify
-    full_rmse = rmse(np.log1p(train_df['demand']), np.log1p(oof_preds))
+    full_rmse = rmse(train_df['demand'], oof_preds)
     line_notify('Full RMSE score %.6f' % full_rmse)
 
     # display importances
@@ -183,7 +183,7 @@ def main(debug=False):
         # sort by date
         df.sort_values('date',inplace=True)
 
-        df = df[df['date']>'2015-04-25']
+        df = df[df['date']>'2014-04-25']
 
         # split train & test
         train_df = df[df['date']<'2016-04-25']

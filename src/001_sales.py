@@ -9,7 +9,7 @@ import warnings
 from tqdm import tqdm
 
 from utils import save2pkl, line_notify
-from utils import COLS_TEST1, COLS_TEST2
+from utils import COLS_TEST1, COLS_TEST2, DAYS_PRED
 
 #===============================================================================
 # preprocess sales
@@ -75,7 +75,11 @@ def main(is_eval=False):
     # drop pre-sales data
     print('Dropping pre-sales data...')
     df = df[df['demand']>=0]
-    
+
+    # shifted features
+    for diff in [28, 365]:
+        df[f'demand_shift_{diff}'] = df.groupby('id').shift(diff)['demand']
+
     # save pkl
     save2pkl('../feats/sales.pkl', df)
 
