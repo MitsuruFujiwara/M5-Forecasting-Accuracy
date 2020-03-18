@@ -7,7 +7,7 @@ import pandas as pd
 import sys
 import warnings
 
-from utils import loadpkl, to_feature, line_notify
+from utils import loadpkl, to_feature, line_notify, to_json
 from utils import removeCorrelatedVariables, removeMissingVariables, reduce_mem_usage
 
 #===============================================================================
@@ -29,8 +29,11 @@ def main():
     del df_calendar, df_sell_prices
     gc.collect()
 
-    # use data from 2015-1
-    df = df[df['date'] >= '2015-1-1']
+    # label encoding
+    cols_string = ['item_id','dept_id','cat_id','store_id','state_id']
+    for c in cols_string:
+        df[c], _ = pd.factorize(df[c])
+        df[c].replace(-1,np.nan,inplace=True)
 
     # reduce memory usage
     df = reduce_mem_usage(df)
@@ -39,10 +42,8 @@ def main():
     to_feature(df, '../feats')
 
     # save feature name list
-    features_json = {}
-    features_json['features'] = df.columns.tolist()
-    with open('../configs/all_features.json', 'w') as f:
-        json.dump(features_json, f, indent=4)
+    features_json = {'features':df.columns.tolist()}
+    to_json(features_json,'../configs/000_all_features.json')
 
     # LINE notify
     line_notify('{} done.'.format(sys.argv[0]))

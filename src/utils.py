@@ -1,4 +1,5 @@
 
+import json
 import feather
 import os
 import pandas as pd
@@ -13,7 +14,8 @@ from tqdm import tqdm
 
 NUM_FOLDS = 5
 
-FEATS_EXCLUDED = ['id','item_id','dept_id','cat_id','store_id','state_id','d','date','is_test']
+FEATS_EXCLUDED = ['demand','index','id','item_id','dept_id','cat_id','store_id','state_id',
+                  'd','date','is_test','wm_yr_wk']
 
 COMPETITION_NAME = 'm5-forecasting-accuracy'
 
@@ -114,3 +116,57 @@ def reduce_mem_usage(df, verbose=True):
     end_mem = df.memory_usage(deep=True).sum() / 1024**2
     if verbose: print('Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)'.format(end_mem, 100 * (start_mem - end_mem) / start_mem))
     return df
+
+# save json
+def to_json(data_dict, path):
+    with open(path, 'w') as f:
+        json.dump(data_dict, f, indent=4)
+
+# ref: https://www.kaggle.com/harupy/m5-baseline
+class CustomTimeSeriesSplitter:
+    def __init__(self, n_splits=5, train_days=80, test_days=20, day_col="d"):
+        self.n_splits = n_splits
+        self.train_days = train_days
+        self.test_days = test_days
+        self.day_col = day_col
+
+    def split(self, X, y=None, groups=None):
+        SEC_IN_DAY = 3600 * 24
+        sec = (X[self.day_col] - X[self.day_col].iloc[0]) * SEC_IN_DAY
+        duration = sec.max()
+
+        train_sec = self.train_days * SEC_IN_DAY
+        test_sec = self.test_days * SEC_IN_DAY
+        total_sec = test_sec + train_sec
+
+        if self.n_splits == 1:
+            train_start = duration - total_sec
+            train_end = train_start + train_sec
+
+            train_mask = (sec >= train_start) & (sec < train_end)
+            test_mask = sec >= train_end
+
+            yield sec[train_mask].index.values, sec[test_mask].index.values
+
+        else:
+            # step = (duration - total_sec) / (self.n_splits - 1)
+            step = DAYS_PRED * SEC_IN_DAY
+
+            for idx in range(self.n_splits):
+                # train_start = idx * step
+                shift = (self.n_splits - (idx + 1)) * step
+                train_start = duration - total_sec - shift
+                train_end = train_start + train_sec
+                test_end = train_end + test_sec
+
+                train_mask = (sec > train_start) & (sec <= train_end)
+
+                if idx == self.n_splits - 1:
+                    test_mask = sec > train_end
+                else:
+                    test_mask = (sec > train_end) & (sec <= test_end)
+
+                yield sec[train_mask].index.values, sec[test_mask].index.values
+
+    def get_n_splits(self):
+        return self.n_splits

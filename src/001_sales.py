@@ -75,11 +75,7 @@ def main(is_eval=False):
     # drop pre-sales data
     print('Dropping pre-sales data...')
     df = df[df['demand']>=0]
-
-    # test flag
-    print('Adding test flag...')
-    df['is_test'] = df['d'].apply(lambda x: 1 if x in COLS_TEST1+COLS_TEST2 else 0)
-
+    
     # save pkl
     save2pkl('../feats/sales.pkl', df)
 

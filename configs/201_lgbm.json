@@ -9,7 +9,6 @@
         "state_id",
         "d",
         "demand",
-        "is_test",
         "date",
         "wm_yr_wk",
         "wday",

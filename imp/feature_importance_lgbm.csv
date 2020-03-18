@@ -1,0 +1,14 @@
+feature,importance,fold
+demand,79.17188805370719,15
+event_name_1,0.0,15
+event_name_2,0.0,15
+event_type_1,0.0,15
+event_type_2,0.0,15
+month,0.0,15
+seasonality,46.697329228763714,15
+sell_price,63.99220829163341,15
+snap_CA,22.94876983675882,15
+snap_TX,16.508506800029163,15
+snap_WI,25.16965049926896,15
+wday,49.19048518251741,15
+year,0.0,15

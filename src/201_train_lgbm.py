@@ -14,11 +14,12 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from glob import glob
 from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import GroupKFold
+from sklearn.model_selection import TimeSeriesSplit
 from tqdm import tqdm
 
-from utils import line_notify, to_json, rmse, save2pkl
-from utils import NUM_FOLDS, FEATS_EXCLUDED
+from utils import line_notify, to_json, rmse, save2pkl, submit
+from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2
+from utils import CustomTimeSeriesSplitter
 
 #==============================================================================
 # Train LightGBM
@@ -52,19 +53,18 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     print("Starting LightGBM. Train shape: {}".format(train_df.shape))
 
     # Cross validation
-    folds = GroupKFold(n_splits= num_folds)
+    folds = TimeSeriesSplit(n_splits=num_folds)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
-#    cat_cols = [c for c in CAT_COLS if c in feats]
 
     # k-fold
-    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], groups=train_df['race_id'])):
-        train_x, train_y = train_df[feats].iloc[train_idx], np.log1p(train_df['odds_win'].iloc[train_idx])
-        valid_x, valid_y = train_df[feats].iloc[valid_idx], np.log1p(train_df['odds_win'].iloc[valid_idx])
+    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats])):
+        train_x, train_y = train_df[feats].iloc[train_idx], np.log1p(train_df['demand'].iloc[train_idx])
+        valid_x, valid_y = train_df[feats].iloc[valid_idx], np.log1p(train_df['demand'].iloc[valid_idx])
 
         # set data structure
         lgb_train = lgb.Dataset(train_x,
@@ -113,8 +113,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         reg.save_model('../output/lgbm_'+str(n_fold)+'.txt')
 
         # save predictions
-        oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
-        sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration) / folds.n_splits
+        oof_preds[valid_idx] = np.expm1(reg.predict(valid_x, num_iteration=reg.best_iteration))
+        sub_preds += np.expm1(reg.predict(test_df[feats], num_iteration=reg.best_iteration)) / folds.n_splits
 
         # save feature importances
         fold_importance_df = pd.DataFrame()
@@ -123,29 +123,47 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         fold_importance_df["fold"] = n_fold + 1
         feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
 
-        print('Fold %2d RMSE : %.6f' % (n_fold + 1, rmse(valid_y, oof_preds[valid_idx])))
+        print('Fold %2d RMSE : %.6f' % (n_fold + 1, rmse(np.expm1(valid_y), oof_preds[valid_idx])))
         del reg, train_x, train_y, valid_x, valid_y
         gc.collect()
 
     # Full RMSE score and LINE Notify
-    full_rmse = rmse(train_df['target'], oof_preds)
+    full_rmse = rmse(np.log1p(train_df['demand']), np.log1p(oof_preds))
     line_notify('Full RMSE score %.6f' % full_rmse)
 
     # display importances
     display_importances(feature_importance_df,
-                        '../output/lgbm_importances.png',
-                        '../output/feature_importance_lgbm.csv')
+                        '../imp/lgbm_importances.png',
+                        '../imp/feature_importance_lgbm.csv')
 
     if not debug:
-        # save prediction for submit
-        test_df.loc[:,'target'] = sub_preds
-        test_df = test_df.reset_index()
-        test_df[['card_id', 'target']].to_csv(submission_file_name, index=False)
-
         # save out of fold prediction
-        train_df.loc[:,'OOF_PRED'] = oof_preds
+        train_df.loc[:,'demand'] = oof_preds
         train_df = train_df.reset_index()
-        train_df[['card_id', 'OOF_PRED']].to_csv(oof_file_name, index=False)
+        train_df[['id', 'demand']].to_csv(oof_file_name, index=False)
+
+        # reshape prediction for submit
+        test_df.loc[:,'demand'] = sub_preds
+        test_df = test_df.reset_index()
+        preds = test_df[['id','d','demand']].reset_index()
+        preds = preds.pivot(index='id', columns='d', values='demand').reset_index()
+
+        # split test1 / test2
+        preds1 = preds[['id']+COLS_TEST1]
+        preds2 = preds[['id']+COLS_TEST2]
+
+        # change column names
+        preds1.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
+        preds2.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
+
+        # replace test2 id
+        preds2['id']= preds2['id'].str.replace('_validation','_evaluation')
+
+        # merge
+        preds = preds1.append(preds2)
+
+        # save csv
+        preds.to_csv(submission_file_name, index=False)
 
         # submission by API
         submit(submission_file_name, comment='model201 cv: %.6f' % full_rmse)
@@ -153,22 +171,27 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 def main(debug=False):
     with timer("Load Datasets"):
         # load feathers
-        files = sorted(glob('../features/*.feather'))
+        files = sorted(glob('../feats/*.feather'))
         df = pd.concat([pd.read_feather(f) for f in tqdm(files, mininterval=60)], axis=1)
-
-        # set id as index
-        df.set_index('id', inplace=True)
 
         # use selected features
         df = df[configs['features']]
 
+        # set id as index
+        df.set_index('id', inplace=True)
+
+        # sort by date
+        df.sort_values('date',inplace=True)
+
+        df = df[df['date']>'2015-04-25']
+
         # split train & test
-        train_df = df[df['target'].notnull()]
-        test_df = df[df['target'].isnull()]
+        train_df = df[df['date']<'2016-04-25']
+        test_df = df[df['date']>='2016-04-25']
         del df
         gc.collect()
     with timer("Run LightGBM with kfold"):
-        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, stratified=True, debug=debug)
+        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, debug=debug)
 
 if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm.csv"
