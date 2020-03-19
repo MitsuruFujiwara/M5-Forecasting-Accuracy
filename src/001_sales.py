@@ -76,9 +76,28 @@ def main(is_eval=False):
     print('Dropping pre-sales data...')
     df = df[df['demand']>=0]
 
-    # shifted features
-    for diff in [28, 365]:
-        df[f'demand_shift_{diff}'] = df.groupby('id').shift(diff)['demand']
+    print('Add demand features...')
+    df_grouped = df[['id','demand']].groupby(['id'])['demand']
+
+    # shifted demand
+    for diff in [0,1,2]:
+        df[f'demand_shift_{diff}'] = df_grouped.shift(DAYS_PRED+diff)
+
+    # rolling mean
+    for size in [7, 30, 60, 90, 180]:
+        df[f'demand_mean_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).mean())
+
+    # rolling std
+    for size in [7, 30, 60, 90, 180]:
+        df[f'demand_std_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).std())
+
+    # rolling skew
+    for size in [7, 30, 60, 90, 180]:
+        df[f'demand_skew_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).skew())
+
+    # rolling kurt
+    for size in [7, 30, 60, 90, 180]:
+        df[f'demand_kurt_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).kurt())
 
     # save pkl
     save2pkl('../feats/sales.pkl', df)

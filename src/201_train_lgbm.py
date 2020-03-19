@@ -18,7 +18,7 @@ from sklearn.model_selection import TimeSeriesSplit
 from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
-from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2
+from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, DAYS_PRED
 from utils import CustomTimeSeriesSplitter
 
 #==============================================================================
@@ -55,6 +55,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     # Cross validation
     folds = TimeSeriesSplit(n_splits=num_folds)
 
+#    folds = CustomTimeSeriesSplitter(n_splits=5, train_days=365*2, test_days=DAYS_PRED, day_col='d')
+
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
     sub_preds = np.zeros(test_df.shape[0])
@@ -84,6 +86,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                 'metric': 'rmse',
                 'learning_rate': 0.05,
                 'max_depth': 5,
+                'max_leaves':int(.7*5** 2),
                 'colsample_bytree': 1.0,
                 'subsample': 0.9,
                 'reg_lambda': 1,
@@ -183,10 +186,18 @@ def main(debug=False):
         df = df[df['date']>'2014-04-25']
 
         # split train & test
+        #=======================================================================
+        # 2011-01-29 ~ 2016-04-24 : d_1    ~ d_1913
+        # 2016-04-25 ~ 2016-05-22 : d_1914 ~ d_1941 (public)
+        # 2016-05-23 ~ 2016-06-19 : d_1942 ~ d_1969 (private)
+        #=======================================================================
+
         train_df = df[df['date']<'2016-04-25']
         test_df = df[df['date']>='2016-04-25']
+
         del df
         gc.collect()
+
     with timer("Run LightGBM with kfold"):
         kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, debug=debug)
 

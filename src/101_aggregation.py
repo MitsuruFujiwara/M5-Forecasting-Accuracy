@@ -35,6 +35,15 @@ def main():
         df[c], _ = pd.factorize(df[c])
         df[c].replace(-1,np.nan,inplace=True)
 
+    # add price features
+    df_grouped = df[['id','sell_price']].groupby('id')['sell_price']
+    df['shift_price_t1'] = df_grouped.transform(lambda x: x.shift(1))
+    df['price_change_t1'] = (df['shift_price_t1'] - df['sell_price']) / (df['shift_price_t1'])
+    df['rolling_price_max_t365'] = df_grouped.transform(lambda x: x.shift(1).rolling(365).max())
+    df['price_change_t365'] = (df['rolling_price_max_t365'] - df['sell_price']) / (df['rolling_price_max_t365'])
+    df['rolling_price_std_t7'] = df_grouped.transform(lambda x: x.rolling(7).std())
+    df['rolling_price_std_t30'] = df_grouped.transform(lambda x: x.rolling(30).std())
+
     # reduce memory usage
     df = reduce_mem_usage(df)
 
