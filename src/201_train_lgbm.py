@@ -63,8 +63,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats])):
-        train_x, train_y = train_df[feats].iloc[train_idx], np.log1p(train_df['demand'].iloc[train_idx])
-        valid_x, valid_y = train_df[feats].iloc[valid_idx], np.log1p(train_df['demand'].iloc[valid_idx])
+        train_x, train_y = train_df[feats].iloc[train_idx], train_df['demand'].iloc[train_idx]
+        valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
 
         # set data structure
         lgb_train = lgb.Dataset(train_x,
@@ -82,16 +82,13 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                 'boosting': 'gbdt',
                 'objective': 'regression',
                 'metric': 'rmse',
-                'learning_rate': 0.01,
-                'subsample': 0.558905453687285,
-                'max_depth': 7,
-                'num_leaves': 41,
-                'min_child_weight': 17.6922822263927,
-                'reg_alpha': 5.64579463330591,
-                'colsample_bytree': 0.229500234658805,
-                'min_split_gain': 5.8530673906124,
-                'reg_lambda': 7.33579368350318,
-                'min_data_in_leaf': 47,
+                'learning_rate': 0.05,
+                'max_depth': 5,
+                'colsample_bytree': 1.0,
+                'subsample': 0.9,
+                'reg_lambda': 1,
+                'reg_alpha': 0,
+                'min_child_weight': 1,
                 'verbose': -1,
                 'seed':int(2**n_fold),
                 'bagging_seed':int(2**n_fold),
@@ -113,8 +110,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         reg.save_model('../output/lgbm_'+str(n_fold)+'.txt')
 
         # save predictions
-        oof_preds[valid_idx] = np.expm1(reg.predict(valid_x, num_iteration=reg.best_iteration))
-        sub_preds += np.expm1(reg.predict(test_df[feats], num_iteration=reg.best_iteration)) / folds.n_splits
+        oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
+        sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration) / folds.n_splits
 
         # save feature importances
         fold_importance_df = pd.DataFrame()
@@ -123,7 +120,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         fold_importance_df["fold"] = n_fold + 1
         feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
 
-        print('Fold %2d RMSE : %.6f' % (n_fold + 1, rmse(np.expm1(valid_y), oof_preds[valid_idx])))
+        print('Fold %2d RMSE : %.6f' % (n_fold + 1, rmse(valid_y, oof_preds[valid_idx])))
         del reg, train_x, train_y, valid_x, valid_y
         gc.collect()
 
