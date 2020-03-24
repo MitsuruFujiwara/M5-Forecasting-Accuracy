@@ -13,7 +13,7 @@ import warnings
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from glob import glob
-from sklearn.model_selection import TimeSeriesSplit, KFold, StratifiedKFold
+from sklearn.model_selection import TimeSeriesSplit, KFold, StratifiedKFold, GroupKFold
 from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
@@ -52,7 +52,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     print("Starting LightGBM. Train shape: {}".format(train_df.shape))
 
     # Cross validation
-    folds = StratifiedKFold(n_splits=num_folds,shuffle=True,random_state=4950)
+    folds = GroupKFold(n_splits= num_folds)
+#    folds = StratifiedKFold(n_splits=num_folds,shuffle=True,random_state=4950)
 #    folds = CustomTimeSeriesSplitter(n_splits=5, train_days=365*2, test_days=DAYS_PRED, day_col='d_numeric')
 
     # Create arrays and dataframes to store results
@@ -62,7 +63,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
     # k-fold
-    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], train_df['store_id'])):
+    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], groups=train_df['d_numeric'])):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['demand'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
 
