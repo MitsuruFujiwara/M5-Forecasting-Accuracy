@@ -44,6 +44,9 @@ def main():
     df['rolling_price_std_t7'] = df_grouped.transform(lambda x: x.rolling(7).std())
     df['rolling_price_std_t30'] = df_grouped.transform(lambda x: x.rolling(30).std())
 
+    # days for CustomTimeSeriesSplitter
+    df['d_numeric'] = df['d'].apply(lambda x: str(x)[2:]).astype(int)
+
     # reduce memory usage
     df = reduce_mem_usage(df)
 

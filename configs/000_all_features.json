@@ -51,6 +51,7 @@
         "rolling_price_max_t365",
         "price_change_t365",
         "rolling_price_std_t7",
-        "rolling_price_std_t30"
+        "rolling_price_std_t30",
+        "d_numeric"
     ]
 }

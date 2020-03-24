@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 NUM_FOLDS = 5
 
-FEATS_EXCLUDED = ['demand','index','id','d','date','is_test','wm_yr_wk']
+FEATS_EXCLUDED = ['demand','index','id','d','date','is_test','wm_yr_wk','d_numeric']
 
 COMPETITION_NAME = 'm5-forecasting-accuracy'
 
