@@ -33,6 +33,8 @@ def main(is_eval=False):
     # drop string columns
     df.drop('weekday',axis=1,inplace=True)
 
+    df['day'] = df['date'].dt.day
+
     # TODO: feature engineering
 
     # save pkl

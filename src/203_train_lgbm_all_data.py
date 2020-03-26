@@ -58,22 +58,11 @@ def train_lightgbm(train_df,test_df,debug=False):
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
     cat_cols = [c for c in CAT_COLS if c in feats]
 
-    # split train & valid
-    train_idx = train_df['date']<='2016-03-27'
-    valid_idx = train_df['date'] > '2016-03-27'
-
-    train_x, train_y = train_df[train_idx][feats], train_df[train_idx]['demand']
-    valid_x, valid_y = train_df[valid_idx][feats], train_df[valid_idx]['demand']
-
     # set data structure
-    lgb_train = lgb.Dataset(train_x,
-                            label=train_y,
-                            categorical_feature=cat_cols,
+    lgb_train = lgb.Dataset(train_df[feats],
+                            label=train_df['demand'],
+#                            categorical_feature=cat_cols,
                             free_raw_data=False)
-    lgb_test = lgb.Dataset(valid_x,
-                           label=valid_y,
-                           categorical_feature=cat_cols,
-                           free_raw_data=False)
 
     # params optimized by optuna
     params ={
@@ -101,18 +90,18 @@ def train_lightgbm(train_df,test_df,debug=False):
     reg = lgb.train(
                     params,
                     lgb_train,
-                    valid_sets=[lgb_train, lgb_test],
-                    valid_names=['train', 'test'],
-                    num_boost_round=10000,
-                    early_stopping_rounds=200,
+#                    valid_sets=[lgb_train, lgb_test],
+#                    valid_names=['train', 'test'],
+                    num_boost_round=1400,
+#                    early_stopping_rounds=200,
                     verbose_eval=100
                     )
 
     # save model
-    reg.save_model('../output/lgbm_holdout.txt')
+    reg.save_model('../output/lgbm_all_data.txt')
 
     # save predictions
-    oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
+    oof_preds += reg.predict(train_df[feats], num_iteration=reg.best_iteration)
     sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration)
 
     # save feature importances
@@ -122,8 +111,8 @@ def train_lightgbm(train_df,test_df,debug=False):
     fold_importance_df["fold"] = 1
     feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
 
-    print('Fold %2d RMSE : %.6f' % (1, rmse(valid_y, oof_preds[valid_idx])))
-    del reg, train_x, train_y, valid_x, valid_y
+#    print('Fold %2d RMSE : %.6f' % (1, rmse(valid_y, oof_preds[valid_idx])))
+    del reg
     gc.collect()
 
     # Full RMSE score and LINE Notify
@@ -165,7 +154,7 @@ def train_lightgbm(train_df,test_df,debug=False):
         preds.to_csv(submission_file_name, index=False)
 
         # submission by API
-        submit(submission_file_name, comment='model202 cv: %.6f' % full_rmse)
+        submit(submission_file_name, comment='model203 cv: %.6f' % full_rmse)
 
 def main(debug=False):
     with timer("Load Datasets"):
