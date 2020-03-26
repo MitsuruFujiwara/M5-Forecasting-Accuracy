@@ -8,7 +8,7 @@ import warnings
 
 from tqdm import tqdm
 
-from utils import save2pkl, line_notify
+from utils import save2pkl, line_notify, reduce_mem_usage
 from utils import COLS_TEST1, COLS_TEST2, DAYS_PRED
 
 #===============================================================================
@@ -51,6 +51,12 @@ def main(is_eval=False):
     df = df.merge(test1,on='id',how='left')
     df = df.merge(test2,on='id',how='left')
 
+    del test1, test2
+    gc.collect()
+
+    # reduce memory usage
+    df = reduce_mem_usage(df)
+
     # date columns
     cols_date = [c for c in df.columns if 'd_' in c]
 
@@ -80,24 +86,32 @@ def main(is_eval=False):
     df_grouped = df[['id','demand']].groupby(['id'])['demand']
 
     # shifted demand
-    for diff in [0,1,2]:
+    for diff in [0,1,2,365]:
         df[f'demand_shift_{diff}'] = df_grouped.shift(DAYS_PRED+diff)
 
     # rolling mean
-    for size in [7, 30, 60, 90, 180]:
+    for size in [7, 30, 60, 90, 180 ,365]:
         df[f'demand_mean_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).mean())
 
     # rolling std
-    for size in [7, 30, 60, 90, 180]:
+    for size in [7, 30, 60, 90, 180 ,365]:
         df[f'demand_std_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).std())
 
     # rolling skew
-    for size in [7, 30, 60, 90, 180]:
+    for size in [7, 30, 60, 90, 180 ,365]:
         df[f'demand_skew_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).skew())
 
     # rolling kurt
-    for size in [7, 30, 60, 90, 180]:
+    for size in [7, 30, 60, 90, 180 ,365]:
         df[f'demand_kurt_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).kurt())
+
+    # rolling max
+    for size in [7, 30, 60, 90, 180 ,365]:
+        df[f'demand_max_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).max())
+
+    # rolling min
+    for size in [7, 30, 60, 90, 180 ,365]:
+        df[f'demand_min_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).min())
 
     # save pkl
     save2pkl('../feats/sales.pkl', df)
