@@ -179,7 +179,7 @@ def main(debug=False):
         # sort by date
 #        df.sort_values('date',inplace=True)
 
-        df = df[df['date']>'2014-04-25']
+        df = df[df['date']>'2013-04-25']
 
         # split train & test
         #=======================================================================
