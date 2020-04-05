@@ -15,11 +15,12 @@ def main():
     sub3 = pd.read_csv('../input/sub_054431.csv',index_col=0)
     sub4 = pd.read_csv('../input/sub_054218.csv',index_col=0)
     sub5 = pd.read_csv('../input/sub_053171.csv',index_col=0)
+    sub6 = pd.read_csv('../input/sub_051599.csv',index_col=0)
 
     # average
     sub = 0.5*sub3 + 0.5*sub4
     sub = 0.5*sub + 0.5*sub5
-#    sub = 0.5*sub + 0.5*sub4
+    sub = 0.5*sub + 0.5*sub6
 #    sub = 0.5*sub + 0.5*sub5
 
     # reset index
