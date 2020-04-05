@@ -62,6 +62,7 @@
         "snap_TX",
         "snap_WI",
         "seasonality",
+        "day",
         "sell_price",
         "shift_price_t1",
         "price_change_t1",
