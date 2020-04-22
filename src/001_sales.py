@@ -82,36 +82,22 @@ def main(is_eval=False):
     print('Dropping pre-sales data...')
     df = df[df['demand']>=0]
 
-    print('Add demand features...')
-    df_grouped = df[['id','demand']].groupby(['id'])['demand']
+    print('Add lag features...')
 
     # shifted demand
-    for diff in [0,1,2,365]:
-        df[f'demand_shift_{diff}'] = df_grouped.shift(DAYS_PRED+diff)
+    df_grouped = df[['id','demand']].groupby(['id'])['demand']
+    for diff in [7,28]:
+        df[f'demand_shift_{diff}'] = df_grouped.shift(diff)
 
     # rolling mean
-    for size in [7, 30, 60, 90, 180 ,365]:
-        df[f'demand_mean_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).mean())
+    for size in [7,28]:
+        for diff in [7,28]:
+            col_lag = f'demand_shift_{diff}'
+            df_grouped_lag = df[['id',col_lag]].groupby(['id'])[col_lag]
+            df[f'demand_mean_{size}_{diff}'] = df_grouped_lag.transform(lambda x: x.rolling(size).mean())
 
-    # rolling std
-    for size in [7, 30, 60, 90, 180 ,365]:
-        df[f'demand_std_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).std())
-
-    # rolling skew
-    for size in [7, 30, 60, 90, 180 ,365]:
-        df[f'demand_skew_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).skew())
-
-    # rolling kurt
-    for size in [7, 30, 60, 90, 180 ,365]:
-        df[f'demand_kurt_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).kurt())
-
-    # rolling max
-    for size in [7, 30, 60, 90, 180 ,365]:
-        df[f'demand_max_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).max())
-
-    # rolling min
-    for size in [7, 30, 60, 90, 180 ,365]:
-        df[f'demand_min_{size}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(size).min())
+    del df_grouped,df_grouped_lag
+    gc.collect()
 
     # save pkl
     save2pkl('../feats/sales.pkl', df)

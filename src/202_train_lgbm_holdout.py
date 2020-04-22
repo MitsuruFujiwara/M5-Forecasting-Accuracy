@@ -75,7 +75,6 @@ def train_lightgbm(train_df,test_df,debug=False):
                            categorical_feature=cat_cols,
                            free_raw_data=False)
 
-    # params optimized by optuna
     params ={
             'device' : 'gpu',
             'gpu_use_dp':True,
