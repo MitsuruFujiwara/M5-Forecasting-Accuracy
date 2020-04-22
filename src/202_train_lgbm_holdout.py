@@ -56,7 +56,7 @@ def train_lightgbm(train_df,test_df,debug=False):
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
-    cat_cols = [c for c in CAT_COLS if c in feats]
+#    cat_cols = [c for c in CAT_COLS if c in feats]
 
     # split train & valid
     train_idx = train_df['date']<='2016-03-27'
@@ -68,11 +68,11 @@ def train_lightgbm(train_df,test_df,debug=False):
     # set data structure
     lgb_train = lgb.Dataset(train_x,
                             label=train_y,
-                            categorical_feature=cat_cols,
+#                            categorical_feature=cat_cols,
                             free_raw_data=False)
     lgb_test = lgb.Dataset(valid_x,
                            label=valid_y,
-                           categorical_feature=cat_cols,
+#                           categorical_feature=cat_cols,
                            free_raw_data=False)
 
     params ={
@@ -126,7 +126,7 @@ def train_lightgbm(train_df,test_df,debug=False):
     gc.collect()
 
     # Full RMSE score and LINE Notify
-    full_rmse = rmse(train_df['demand'], oof_preds)
+    full_rmse = rmse(train_df[valid_idx]['demand'], oof_preds[valid_idx])
     line_notify('Full RMSE score %.6f' % full_rmse)
 
     # display importances
