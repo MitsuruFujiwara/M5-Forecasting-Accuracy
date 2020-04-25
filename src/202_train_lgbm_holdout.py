@@ -77,7 +77,7 @@ def train_lightgbm(train_df,test_df,debug=False):
 
     params ={
             'device' : 'gpu',
-            'gpu_use_dp':True,
+#            'gpu_use_dp':True,
             'task': 'train',
             'boosting': 'gbdt',
             'objective': 'poisson',
