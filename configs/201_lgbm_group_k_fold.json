@@ -9,8 +9,6 @@
         "state_id",
         "d",
         "demand",
-        "demand_mean_7_7",
-        "demand_mean_7_28",
         "demand_mean_28_7",
         "demand_mean_28_28",
         "date",
