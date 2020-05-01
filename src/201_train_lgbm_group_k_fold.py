@@ -47,6 +47,21 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     plt.tight_layout()
     plt.savefig(outputpath)
 
+# define custom loss function ref:https://www.kaggle.com/ragnar123/simple-lgbm-groupkfold-cv
+def custom_asymmetric_train(y_pred, y_true):
+    y_true = y_true.get_label()
+    residual = (y_true - y_pred).astype("float")
+    grad = np.where(residual < 0, -2 * residual, -2 * residual * 1.15)
+    hess = np.where(residual < 0, 2, 2 * 1.15)
+    return grad, hess
+
+# define custom evaluation metric ref:https://www.kaggle.com/ragnar123/simple-lgbm-groupkfold-cv
+def custom_asymmetric_valid(y_pred, y_true):
+    y_true = y_true.get_label()
+    residual = (y_true - y_pred).astype("float")
+    loss = np.where(residual < 0, (residual ** 2) , (residual ** 2) * 1.15)
+    return "custom_asymmetric_eval", np.mean(loss), False
+
 # LightGBM GBDT with Group KFold
 def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     print("Starting LightGBM. Train shape: {}".format(train_df.shape))
@@ -103,7 +118,9 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                         valid_names=['train', 'test'],
                         num_boost_round=20000,
                         early_stopping_rounds= 200,
-                        verbose_eval=100
+                        verbose_eval=100,
+                        feval = custom_asymmetric_valid,
+                        fobj = custom_asymmetric_train,
                         )
 
         # save model
