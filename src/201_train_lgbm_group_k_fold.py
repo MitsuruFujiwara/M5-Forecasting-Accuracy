@@ -21,7 +21,7 @@ from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, DAYS_PRED
 from utils import CustomTimeSeriesSplitter
 
 #==============================================================================
-# Train LightGBM
+# Train LightGBM Group K-folds
 #==============================================================================
 
 warnings.filterwarnings('ignore')
@@ -53,8 +53,6 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 
     # Cross validation
     folds = GroupKFold(n_splits= num_folds)
-#    folds = StratifiedKFold(n_splits=num_folds,shuffle=True,random_state=4950)
-#    folds = CustomTimeSeriesSplitter(n_splits=5, train_days=365*2, test_days=DAYS_PRED, day_col='d_numeric')
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -63,7 +61,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
     # k-fold
-    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], groups=train_df['d_numeric'])):
+    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], groups=train_df['key_kf'])):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['demand'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
 
@@ -184,6 +182,9 @@ def main(debug=False):
 
         df = df[df['date']>'2014-04-25']
 
+        # key for group k-fold
+        df['key_kf'] = df['week'].astype(str)+'_'+df['year'].astype(str)
+
         # split train & test
         #=======================================================================
         # 2011-01-29 ~ 2016-04-24 : d_1    ~ d_1913
@@ -203,6 +204,6 @@ def main(debug=False):
 if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm.csv"
     oof_file_name = "../output/oof_lgbm.csv"
-    configs = json.load(open('../configs/201_lgbm.json'))
+    configs = json.load(open('../configs/201_lgbm_group_k_fold.json'))
     with timer("Full model run"):
         main(debug=False)

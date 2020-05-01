@@ -15,7 +15,7 @@ from typing import Union
 
 NUM_FOLDS = 5
 
-FEATS_EXCLUDED = ['demand','index','id','d','date','is_test','wm_yr_wk','d_numeric']
+FEATS_EXCLUDED = ['demand','index','id','d','date','is_test','wm_yr_wk','d_numeric','key_kf']
 
 # ref:https://www.kaggle.com/kailex/m5-forecaster-0-57330/comments
 CAT_COLS = ['state_id','dept_id','cat_id','wday','day','week','month',

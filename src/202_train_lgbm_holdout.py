@@ -76,8 +76,8 @@ def train_lightgbm(train_df,test_df,debug=False):
                            free_raw_data=False)
 
     params ={
-#            'device' : 'gpu',
-#            'gpu_use_dp':True,
+            'device' : 'gpu',
+            'gpu_use_dp':True,
             'task': 'train',
             'boosting': 'gbdt',
             'objective': 'poisson',
@@ -202,6 +202,6 @@ def main(debug=False):
 if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm_holdout.csv"
     oof_file_name = "../output/oof_lgbm_holdout.csv"
-    configs = json.load(open('../configs/201_lgbm.json'))
+    configs = json.load(open('../configs/202_lgbm_holdout.json'))
     with timer("Full model run"):
         main(debug=False)

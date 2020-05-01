@@ -34,6 +34,7 @@ def main(is_eval=False):
     df.drop('weekday',axis=1,inplace=True)
 
     df['day'] = df['date'].dt.day
+    df['week'] = df['date'].dt.weekofyear
 
     # TODO: feature engineering
 
