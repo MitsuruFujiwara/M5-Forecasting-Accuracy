@@ -29,6 +29,7 @@
         "snap_WI",
         "seasonality",
         "day",
+        "week",
         "sell_price",
         "shift_price_t1",
         "price_change_t1",
