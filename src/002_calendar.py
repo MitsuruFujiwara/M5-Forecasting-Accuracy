@@ -6,6 +6,8 @@ import pandas as pd
 import sys
 import warnings
 
+from math import ceil
+
 from utils import save2pkl, line_notify
 
 #===============================================================================
@@ -35,8 +37,13 @@ def main(is_eval=False):
 
     df['day'] = df['date'].dt.day
     df['week'] = df['date'].dt.weekofyear
+    df['month'] = df['date'].dt.month
+    df['year'] = df['date'].dt.year
+    df['year'] = (df['year'] - df['year'].min())
+    df['weekofmonth'] = df['day'].apply(lambda x: ceil(x/7))
 
-    # TODO: feature engineering
+    df['dayofweek'] = df['date'].dt.dayofweek
+    df['is_weekend'] = (df['dayofweek']>=5).astype(int)
 
     # save pkl
     save2pkl('../feats/calendar.pkl', df)

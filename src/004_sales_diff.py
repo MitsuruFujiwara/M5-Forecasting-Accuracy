@@ -12,7 +12,7 @@ from utils import save2pkl, line_notify, reduce_mem_usage
 from utils import COLS_TEST1, COLS_TEST2, DAYS_PRED
 
 #===============================================================================
-# preprocess sales
+# preprocess sales (diff)
 #===============================================================================
 
 warnings.simplefilter(action='ignore')
@@ -54,11 +54,20 @@ def main(is_eval=False):
     del test1, test2
     gc.collect()
 
-    # reduce memory usage
-    df = reduce_mem_usage(df)
-
     # date columns
     cols_date = [c for c in df.columns if 'd_' in c]
+
+    # replace pre-sale product amout as nan
+    df['pre_sale_flag'] = True
+
+    # drop pre-sale flag
+    df.drop('pre_sale_flag',axis=1,inplace=True)
+
+    # target values to diff
+    df[cols_date] = df[cols_date].diff(axis=1)
+
+    # reduce memory usage
+    df = reduce_mem_usage(df)
 
     # melt sales data
     print('Melting sales data...')
@@ -68,29 +77,20 @@ def main(is_eval=False):
     print('Melted sales train validation has {} rows and {} columns'.format(df.shape[0], df.shape[1]))
 
     print('Add lag features...')
-    SHIFT_DAY = 28
+    # shifted demand
+    df_grouped = df[['id','demand']].groupby(['id'])['demand']
+    for diff in [7,28]:
+        df[f'demand_shift_{diff}'] = df_grouped.shift(diff)
 
-    LAG_DAYS = [col for col in range(SHIFT_DAY,SHIFT_DAY+15)]
-    df = df.assign(**{
-            '{}_lag_{}'.format(col, l): df.groupby(['id'])[col].transform(lambda x: x.shift(l))
-            for l in LAG_DAYS
-            for col in [TARGET]
-        })
+    # rolling mean
+    for size in [7,28]:
+        for diff in [7,28]:
+            col_lag = f'demand_shift_{diff}'
+            df_grouped_lag = df[['id',col_lag]].groupby(['id'])[col_lag]
+            df[f'demand_mean_{size}_{diff}'] = df_grouped_lag.transform(lambda x: x.rolling(size).mean())
 
-    print('Create rolling aggs')
-
-    for i in [7,14,30,60,180]:
-        print('Rolling period:', i)
-        grid_df['rolling_mean_'+str(i)] = grid_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(SHIFT_DAY).rolling(i).mean()).astype(np.float16)
-        grid_df['rolling_std_'+str(i)]  = grid_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(SHIFT_DAY).rolling(i).std()).astype(np.float16)
-
-    # Rollings
-    # with sliding shift
-    for d_shift in [1,7,14]:
-        print('Shifting period:', d_shift)
-        for d_window in [7,14,30,60]:
-            col_name = 'rolling_mean_tmp_'+str(d_shift)+'_'+str(d_window)
-            grid_df[col_name] = grid_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(d_shift).rolling(d_window).mean()).astype(np.float16)
+    del df_grouped,df_grouped_lag
+    gc.collect()
 
     # save pkl
     save2pkl('../feats/sales.pkl', df)

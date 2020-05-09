@@ -29,6 +29,9 @@ def main():
     del df_calendar, df_sell_prices
     gc.collect()
 
+    # drop pre-release rows
+    df = df[df['wm_yr_wk']>=df['release']]
+
     # label encoding
     cols_string = ['item_id','dept_id','cat_id','store_id','state_id']
     for c in cols_string:
@@ -43,6 +46,13 @@ def main():
     df['price_change_t365'] = (df['rolling_price_max_t365'] - df['sell_price']) / (df['rolling_price_max_t365'])
     df['rolling_price_std_t7'] = df_grouped.transform(lambda x: x.rolling(7).std())
     df['rolling_price_std_t30'] = df_grouped.transform(lambda x: x.rolling(30).std())
+
+    # features release date
+    df['release'] = df['release'] - df['release'].min()
+
+    # price momentum by month & year
+    df['price_momentum_m'] = df['sell_price']/df.groupby(['store_id','item_id','month'])['sell_price'].transform('mean')
+    df['price_momentum_y'] = df['sell_price']/df.groupby(['store_id','item_id','year'])['sell_price'].transform('mean')
 
     # days for CustomTimeSeriesSplitter
     df['d_numeric'] = df['d'].apply(lambda x: str(x)[2:]).astype(int)
