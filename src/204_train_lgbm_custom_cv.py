@@ -67,7 +67,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
 
         # save validation indexes
-        valid_idxs += valid_idx
+        valid_idxs += list(valid_idx)
 
         # set data structure
         lgb_train = lgb.Dataset(train_x,
