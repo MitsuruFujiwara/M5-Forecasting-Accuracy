@@ -54,6 +54,9 @@ def main(is_eval=False):
     del test1, test2
     gc.collect()
 
+    # reduce memory usage
+    df = reduce_mem_usage(df)
+
     # date columns
     cols_date = [c for c in df.columns if 'd_' in c]
 

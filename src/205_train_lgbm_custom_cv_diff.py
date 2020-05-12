@@ -135,10 +135,12 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     if not debug:
         # save out of fold prediction
         train_df.loc[:,'demand'] = oof_preds
+        train_df = train_df.reset_index()
         train_df[['id', 'demand']].to_csv(oof_file_name, index=False)
 
         # reshape prediction for submit
         test_df.loc[:,'demand'] = sub_preds
+        test_df = test_df.reset_index()
         preds = test_df[['id','d','demand']].reset_index()
         preds = preds.pivot(index='id', columns='d', values='demand').reset_index()
 
