@@ -8,7 +8,7 @@ import warnings
 
 from tqdm import tqdm
 
-from utils import save2pkl, line_notify, reduce_mem_usage
+from utils import save2pkl, line_notify, reduce_mem_usage, to_pickles
 from utils import COLS_TEST1, COLS_TEST2, DAYS_PRED
 
 #===============================================================================
@@ -54,9 +54,6 @@ def main(is_eval=False):
     del test1, test2
     gc.collect()
 
-    # reduce memory usage
-    df = reduce_mem_usage(df)
-
     # date columns
     cols_date = [c for c in df.columns if 'd_' in c]
 
@@ -67,33 +64,47 @@ def main(is_eval=False):
 
     print('Melted sales train validation has {} rows and {} columns'.format(df.shape[0], df.shape[1]))
 
+    # lag features
+    df_grouped = df[['id','demand']].groupby(['id'])['demand']
+
     print('Add lag features...')
-    SHIFT_DAY = 28
+    for i in tqdm(range(1,15)):
+        df[f'demand_lag_{i}'] = df_grouped.shift(DAYS_PRED+i)
 
-    LAG_DAYS = [col for col in range(SHIFT_DAY,SHIFT_DAY+15)]
-    df = df.assign(**{
-            '{}_lag_{}'.format(col, l): df.groupby(['id'])[col].transform(lambda x: x.shift(l))
-            for l in LAG_DAYS
-            for col in [TARGET]
-        })
+    print('Add rolling aggs...')
+    for i in tqdm([7,14,30,60,180]):
+        df[f'demand_rolling_mean_{i}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(i).mean())
+        df[f'demand_rolling_std_{i}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(i).std())
 
-    print('Create rolling aggs')
+    del df_grouped
+    gc.collect()
 
-    for i in [7,14,30,60,180]:
-        print('Rolling period:', i)
-        grid_df['rolling_mean_'+str(i)] = grid_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(SHIFT_DAY).rolling(i).mean()).astype(np.float16)
-        grid_df['rolling_std_'+str(i)]  = grid_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(SHIFT_DAY).rolling(i).std()).astype(np.float16)
+    # diff features
+    df_grouped_diff = df[['id','demand']].groupby(['id'])['demand'].diff()
+    print('Add lag features...')
+    for i in tqdm(range(1,15)):
+        df[f'demand_diff_lag_{i}'] = df_grouped_diff.shift(DAYS_PRED+i)
 
-    # Rollings
-    # with sliding shift
-    for d_shift in [1,7,14]:
-        print('Shifting period:', d_shift)
-        for d_window in [7,14,30,60]:
-            col_name = 'rolling_mean_tmp_'+str(d_shift)+'_'+str(d_window)
-            grid_df[col_name] = grid_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(d_shift).rolling(d_window).mean()).astype(np.float16)
+    print('Add rolling aggs...')
+    for i in tqdm([7,14,30,60,180]):
+        df[f'demand_diff_rolling_mean_{i}'] = df_grouped_diff.transform(lambda x: x.shift(DAYS_PRED).rolling(i).mean())
+        df[f'demand_diff_rolling_std_{i}'] = df_grouped_diff.transform(lambda x: x.shift(DAYS_PRED).rolling(i).std())
+
+    del df_grouped_diff
+    gc.collect()
+
+    # add numeric date
+    df['d_numeric'] = df['d'].apply(lambda x: int(x[2:]))
+
+    # drop old data (~2012/12/31)
+    df = df[df['d_numeric']>=704]
+
+    # reduce memory usage
+    df = reduce_mem_usage(df)
 
     # save pkl
     save2pkl('../feats/sales.pkl', df)
+#    to_pickles(df, '../feats/sales', split_size=3)
 
     # LINE notify
     line_notify('{} done.'.format(sys.argv[0]))

@@ -7,7 +7,7 @@ import pandas as pd
 import sys
 import warnings
 
-from utils import loadpkl, to_feature, line_notify, to_json
+from utils import loadpkl, to_feature, line_notify, to_json, read_pickles
 from utils import removeCorrelatedVariables, removeMissingVariables, reduce_mem_usage
 
 #===============================================================================
@@ -19,6 +19,7 @@ warnings.simplefilter(action='ignore')
 def main():
     # load pkls
     df = loadpkl('../feats/sales.pkl')
+#    df = read_pickles('../feats/sales')
     df_calendar = loadpkl('../feats/calendar.pkl')
     df_sell_prices = loadpkl('../feats/sell_prices.pkl')
 

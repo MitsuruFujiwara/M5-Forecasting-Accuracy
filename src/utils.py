@@ -95,6 +95,36 @@ def loadpkl(path):
     out = pickle.load(f)
     return out
 
+# save multi-pkl files
+def to_pickles(df, path, split_size=3):
+    """
+    path = '../output/mydf'
+    wirte '../output/mydf/0.p'
+          '../output/mydf/1.p'
+          '../output/mydf/2.p'
+    """
+    print('shape: {}'.format(df.shape))
+
+    gc.collect()
+    mkdir_p(path)
+
+    kf = KFold(n_splits=split_size, random_state=326)
+    for i, (train_index, val_index) in enumerate(tqdm(kf.split(df))):
+        df.iloc[val_index].to_pickle(path+'/'+str(i)+'.pkl')
+    return
+
+# read multi-pkl files
+def read_pickles(path, col=None, use_tqdm=True):
+    if col is None:
+        if use_tqdm:
+            df = pd.concat([ pd.read_pickle(f) for f in tqdm(sorted(glob(path+'/*'))) ])
+        else:
+            print('reading {}'.format(path))
+            df = pd.concat([ pd.read_pickle(f) for f in sorted(glob(path+'/*')) ])
+    else:
+        df = pd.concat([ pd.read_pickle(f)[col] for f in tqdm(sorted(glob(path+'/*'))) ])
+    return df
+
 # reduce memory usage
 def reduce_mem_usage(df, verbose=True):
     numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
@@ -128,51 +158,50 @@ def to_json(data_dict, path):
     with open(path, 'w') as f:
         json.dump(data_dict, f, indent=4)
 
-# ref: https://www.kaggle.com/harupy/m5-baseline
-class CustomTimeSeriesSplitter:
-    def __init__(self, n_splits=5, train_days=80, test_days=20, day_col='d'):
+# stop GCP instance
+def stop_instance():
+    """
+    You need to login first.
+    >> gcloud auth login
+    """
+    send_line('stop instance')
+#    os.system(f'gcloud compute instances stop {os.uname()[1]} --zone us-east1-b')
+    os.system(f'gcloud compute instances stop {os.uname()[1]}\n\n')
+
+# custom time series splitter
+class CustomTimeSeriesSplitter(object):
+    """
+    split validation data
+    fold 1 train: d_1 ~ d_1885, valid: d_1886 ~ d_1913
+    fold 2 train: d_1 ~ d_1857, valid: d_1858 ~ d_1885
+    fold 3 train: d_1 ~ d_1547, valid: d_1548 ~ d_1575
+
+    public: d_1914 ~ d_1941
+    private: d_1942 ~ d_1969
+    """
+
+    def __init__(self,end_train=1913,n_splits=3):
+        self.end_train = end_train
         self.n_splits = n_splits
-        self.train_days = train_days
-        self.test_days = test_days
-        self.day_col = day_col
 
     def split(self, X, y=None, groups=None):
-        SEC_IN_DAY = 3600 * 24
-        sec = (X[self.day_col] - X[self.day_col].iloc[0]) * SEC_IN_DAY
-        duration = sec.max()
+        # reset index
+        X.reset_index(inplace=True)
 
-        train_sec = self.train_days * SEC_IN_DAY
-        test_sec = self.test_days * SEC_IN_DAY
-        total_sec = test_sec + train_sec
+        # get masks
+        train_mask1 = (X['d_numeric']>=self.end_train-28-365*2)&(X['d_numeric']<=self.end_train-28)
+        valid_mask1 = (X['d_numeric']>self.end_train-28)&(X['d_numeric']<=self.end_train)
 
-        if self.n_splits == 1:
-            train_start = duration - total_sec
-            train_end = train_start + train_sec
+        train_mask2 = (X['d_numeric']>=self.end_train-28*2-365*2)&(X['d_numeric']<=self.end_train-28*2)
+        valid_mask2 = (X['d_numeric']>self.end_train-28*2)&(X['d_numeric']<=self.end_train-28)
 
-            train_mask = (sec >= train_start) & (sec < train_end)
-            test_mask = sec >= train_end
+        train_mask3 = (X['d_numeric']>=self.end_train-365-365*2)&(X['d_numeric']<=self.end_train-365)
+        valid_mask3 = (X['d_numeric']>self.end_train-365)&(X['d_numeric']<=self.end_train-365+28)
 
-            yield sec[train_mask].index.values, sec[test_mask].index.values
+        masks = [(train_mask1,valid_mask1),(train_mask2,valid_mask2),(train_mask3,valid_mask3)]
 
-        else:
-            # step = (duration - total_sec) / (self.n_splits - 1)
-            step = DAYS_PRED * SEC_IN_DAY
-
-            for idx in range(self.n_splits):
-                # train_start = idx * step
-                shift = (self.n_splits - (idx + 1)) * step
-                train_start = duration - total_sec - shift
-                train_end = train_start + train_sec
-                test_end = train_end + test_sec
-
-                train_mask = (sec > train_start) & (sec <= train_end)
-
-                if idx == self.n_splits - 1:
-                    test_mask = sec > train_end
-                else:
-                    test_mask = (sec > train_end) & (sec <= test_end)
-
-                yield sec[train_mask].index.values, sec[test_mask].index.values
+        for idx in range(self.n_splits):
+            yield X[masks[idx][0]].index.values, X[masks[idx][1]].index.values
 
     def get_n_splits(self):
         return self.n_splits
