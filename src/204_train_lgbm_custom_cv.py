@@ -59,11 +59,15 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
+    valid_idxs=[]
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df)):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['demand'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
+
+        # save validation indexes
+        valid_idxs += valid_idx
 
         # set data structure
         lgb_train = lgb.Dataset(train_x,
@@ -74,8 +78,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                                free_raw_data=False)
 
         params ={
-                'device' : 'gpu',
-                'gpu_use_dp':True,
+#                'device' : 'gpu',
+#                'gpu_use_dp':True,
                 'task': 'train',
                 'boosting': 'gbdt',
                 'objective': 'poisson',
@@ -124,7 +128,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         gc.collect()
 
     # Full RMSE score and LINE Notify
-    full_rmse = rmse(train_df['demand'], oof_preds)
+    full_rmse = rmse(train_df['demand'][valid_idxs], oof_preds[valid_idxs])
     line_notify('Full RMSE score %.6f' % full_rmse)
 
     # display importances
