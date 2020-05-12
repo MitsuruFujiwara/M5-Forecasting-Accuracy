@@ -8,12 +8,12 @@ sh Anaconda3-2019.10-Linux-x86_64.sh
 rm Anaconda3-2019.10-Linux-x86_64.sh
 
 # ここで一旦sshのウインドウを閉じる
-# ブラウザでssh画面を再起動後、追加で必要なパッケージなどをインストール
+# ブラウザでsshウインドウを再起動後、追加で必要なパッケージなどをインストール
 conda install -c conda-forge feather-format
 conda install -c conda-forge lightgbm
 pip install kaggle
 
-# kaggle API用のjsonファイルを所定の位置に移動（設定ボタン→ファイルをアップロードでkaggle.jsonをアップロードしておく）
+# kaggle API用のjsonファイルを所定の位置に移動（設定ボタン→ファイルをアップロード）
 mv kaggle.json /home/fujiwara52jp/.kaggle
 chmod 600 /home/fujiwara52jp/.kaggle/kaggle.json
 
