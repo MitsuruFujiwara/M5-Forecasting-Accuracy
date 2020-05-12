@@ -18,8 +18,8 @@ warnings.simplefilter(action='ignore')
 
 def main():
     # load pkls
-    df = loadpkl('../feats/sales.pkl')
-#    df = read_pickles('../feats/sales')
+#    df = loadpkl('../feats/sales.pkl')
+    df = read_pickles('../feats/sales')
     df_calendar = loadpkl('../feats/calendar.pkl')
     df_sell_prices = loadpkl('../feats/sell_prices.pkl')
 

@@ -45,6 +45,11 @@ def main(is_eval=False):
     df['dayofweek'] = df['date'].dt.dayofweek
     df['is_weekend'] = (df['dayofweek']>=5).astype(int)
 
+    # start-end events to isin features
+    # TODO: 
+#    NBAFinalsStart
+#    Ramadan starts
+
     # save pkl
     save2pkl('../feats/calendar.pkl', df)
 

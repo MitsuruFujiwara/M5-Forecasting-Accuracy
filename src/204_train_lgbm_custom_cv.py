@@ -11,9 +11,7 @@ import time
 import warnings
 
 from contextlib import contextmanager
-from datetime import datetime, timedelta
 from glob import glob
-from sklearn.model_selection import TimeSeriesSplit, KFold, StratifiedKFold, GroupKFold
 from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
@@ -67,7 +65,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
 
         # save validation indexes
-        valid_idxs += valid_idx
+        valid_idxs += list(valid_idx)
 
         # set data structure
         lgb_train = lgb.Dataset(train_x,
@@ -78,8 +76,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                                free_raw_data=False)
 
         params ={
-#                'device' : 'gpu',
-#                'gpu_use_dp':True,
+                'device' : 'gpu',
+                'gpu_use_dp':True,
                 'task': 'train',
                 'boosting': 'gbdt',
                 'objective': 'poisson',
@@ -139,7 +137,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     if not debug:
         # save out of fold prediction
         train_df.loc[:,'demand'] = oof_preds
-        train_df[['id', 'demand']].to_csv(oof_file_name, index=False)
+        train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
 
         # reshape prediction for submit
         test_df.loc[:,'demand'] = sub_preds

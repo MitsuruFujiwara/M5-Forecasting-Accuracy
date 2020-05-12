@@ -56,12 +56,10 @@ def train_lightgbm(train_df,test_df,debug=False):
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
-    cat_cols = [c for c in CAT_COLS if c in feats]
 
     # set data structure
     lgb_train = lgb.Dataset(train_df[feats],
                             label=train_df['demand'],
-#                            categorical_feature=cat_cols,
                             free_raw_data=False)
 
     # params optimized by optuna
@@ -90,10 +88,7 @@ def train_lightgbm(train_df,test_df,debug=False):
     reg = lgb.train(
                     params,
                     lgb_train,
-#                    valid_sets=[lgb_train, lgb_test],
-#                    valid_names=['train', 'test'],
-                    num_boost_round=1400,
-#                    early_stopping_rounds=200,
+                    num_boost_round=2100,
                     verbose_eval=100
                     )
 
@@ -171,7 +166,7 @@ def main(debug=False):
         # sort by date
 #        df.sort_values('date',inplace=True)
 
-        df = df[df['date']>'2015-04-25']
+        df = df[df['date']>'2014-04-25']
 
         # split train & test
         #=======================================================================
@@ -192,6 +187,6 @@ def main(debug=False):
 if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm_holdout.csv"
     oof_file_name = "../output/oof_lgbm_holdout.csv"
-    configs = json.load(open('../configs/201_lgbm.json'))
+    configs = json.load(open('../configs/204_lgbm_custom_cv.json'))
     with timer("Full model run"):
         main(debug=False)

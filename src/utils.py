@@ -1,6 +1,7 @@
 
-import json
 import feather
+import gc
+import json
 import os
 import pandas as pd
 import numpy as np
@@ -9,6 +10,7 @@ import pickle
 
 from multiprocessing import Pool, cpu_count
 from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import KFold
 from time import time, sleep
 from tqdm import tqdm
 from typing import Union
@@ -82,6 +84,13 @@ def submit(file_path, comment='from API'):
         message += '{}: {}\n'.format(i,j)
 #        print(f'{i}: {j}') # TODO: comment out later?
     line_notify(message.rstrip())
+
+# make dir
+def mkdir_p(path):
+    try:
+        os.stat(path)
+    except:
+        os.mkdir(path)
 
 # save pkl
 def save2pkl(path, df):
@@ -205,6 +214,41 @@ class CustomTimeSeriesSplitter(object):
 
     def get_n_splits(self):
         return self.n_splits
+
+
+# helper for making lag features
+def make_lags(df):
+    # lag features
+    df_grouped = df[['id','demand']].groupby(['id'])['demand']
+
+    print('Add lag features...')
+    for i in tqdm(range(1,15)):
+        df[f'demand_lag_{i}'] = df_grouped.shift(DAYS_PRED+i)
+
+    print('Add rolling aggs...')
+    for i in tqdm([7,14,30,60,180]):
+        df[f'demand_rolling_mean_{i}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(i).mean())
+        df[f'demand_rolling_std_{i}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(i).std())
+
+    del df_grouped
+    gc.collect()
+
+    # diff features
+    df_grouped_diff = df[['id','demand']].groupby(['id'])['demand'].diff()
+    print('Add lag features...')
+    for i in tqdm(range(1,15)):
+        df[f'demand_diff_lag_{i}'] = df_grouped_diff.shift(DAYS_PRED+i)
+
+    print('Add rolling aggs...')
+    for i in tqdm([7,14,30,60,180]):
+        df[f'demand_diff_rolling_mean_{i}'] = df_grouped_diff.transform(lambda x: x.shift(DAYS_PRED).rolling(i).mean())
+        df[f'demand_diff_rolling_std_{i}'] = df_grouped_diff.transform(lambda x: x.shift(DAYS_PRED).rolling(i).std())
+
+    del df_grouped_diff
+    gc.collect()
+
+    return df
+
 
 # function for evaluating WRMSSEE
 # ref: https://www.kaggle.com/c/m5-forecasting-accuracy/discussion/133834

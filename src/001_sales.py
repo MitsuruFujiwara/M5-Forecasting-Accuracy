@@ -8,7 +8,7 @@ import warnings
 
 from tqdm import tqdm
 
-from utils import save2pkl, line_notify, reduce_mem_usage, to_pickles
+from utils import save2pkl, line_notify, reduce_mem_usage, to_pickles, make_lags
 from utils import COLS_TEST1, COLS_TEST2, DAYS_PRED
 
 #===============================================================================
@@ -67,34 +67,11 @@ def main(is_eval=False):
 
     print('Melted sales train validation has {} rows and {} columns'.format(df.shape[0], df.shape[1]))
 
-    # lag features
-    df_grouped = df[['id','demand']].groupby(['id'])['demand']
+    # make lag features
+    df = make_lags(df)
 
-    print('Add lag features...')
-    for i in tqdm(range(1,15)):
-        df[f'demand_lag_{i}'] = df_grouped.shift(DAYS_PRED+i)
-
-    print('Add rolling aggs...')
-    for i in tqdm([7,14,30,60,180]):
-        df[f'demand_rolling_mean_{i}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(i).mean())
-        df[f'demand_rolling_std_{i}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(i).std())
-
-    del df_grouped
-    gc.collect()
-
-    # diff features
-    df_grouped_diff = df[['id','demand']].groupby(['id'])['demand'].diff()
-    print('Add lag features...')
-    for i in tqdm(range(1,15)):
-        df[f'demand_diff_lag_{i}'] = df_grouped_diff.shift(DAYS_PRED+i)
-
-    print('Add rolling aggs...')
-    for i in tqdm([7,14,30,60,180]):
-        df[f'demand_diff_rolling_mean_{i}'] = df_grouped_diff.transform(lambda x: x.shift(DAYS_PRED).rolling(i).mean())
-        df[f'demand_diff_rolling_std_{i}'] = df_grouped_diff.transform(lambda x: x.shift(DAYS_PRED).rolling(i).std())
-
-    del df_grouped_diff
-    gc.collect()
+    # reduce memory usage
+    df = reduce_mem_usage(df)
 
     # add numeric date
     df['d_numeric'] = df['d'].apply(lambda x: int(x[2:]))
@@ -102,12 +79,9 @@ def main(is_eval=False):
     # drop old data (~2012/12/31)
     df = df[df['d_numeric']>=704]
 
-    # reduce memory usage
-    df = reduce_mem_usage(df)
-
     # save pkl
-    save2pkl('../feats/sales.pkl', df)
-#    to_pickles(df, '../feats/sales', split_size=3)
+#    save2pkl('../feats/sales.pkl', df)
+    to_pickles(df, '../feats/sales', split_size=3)
 
     # LINE notify
     line_notify('{} done.'.format(sys.argv[0]))
