@@ -2,6 +2,7 @@
 cd ../feats
 rm *.feather
 rm *.pkl
+rm /sales/*.pkl
 cd ../src
 python 001_sales.py
 python 002_calendar.py

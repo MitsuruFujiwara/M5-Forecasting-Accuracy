@@ -4,3 +4,4 @@
 /src/__pycache__/
 /feats/*.feather
 /feats/*.pkl
+/feats/sales/*.pkl
