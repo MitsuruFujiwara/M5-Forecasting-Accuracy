@@ -15,7 +15,7 @@ from glob import glob
 from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
-from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, DAYS_PRED
+from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, DAYS_PRED, CAT_COLS
 from utils import CustomTimeSeriesSplitter
 
 #==============================================================================
@@ -57,6 +57,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
+    cat_cols = [c for c in CAT_COLS if c in feats]
     valid_idxs=[]
 
     # k-fold
@@ -70,14 +71,17 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         # set data structure
         lgb_train = lgb.Dataset(train_x,
                                 label=train_y,
+                                categorical_feature=cat_cols,
                                 free_raw_data=False)
+
         lgb_test = lgb.Dataset(valid_x,
                                label=valid_y,
+                               categorical_feature=cat_cols,
                                free_raw_data=False)
 
         params ={
-#                'device' : 'gpu',
-#                'gpu_use_dp':True,
+                'device' : 'gpu',
+                'gpu_use_dp':True,
                 'task': 'train',
                 'boosting': 'gbdt',
                 'objective': 'poisson',
@@ -162,7 +166,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         preds.to_csv(submission_file_name, index=False)
 
         # submission by API
-        submit(submission_file_name, comment='model201 cv: %.6f' % full_rmse)
+        submit(submission_file_name, comment='model204 cv: %.6f' % full_rmse)
 
 def main(debug=False):
     with timer("Load Datasets"):
