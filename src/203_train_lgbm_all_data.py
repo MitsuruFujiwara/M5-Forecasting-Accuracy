@@ -56,18 +56,18 @@ def train_lightgbm(train_df,test_df,debug=False):
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
-    cat_cols = [c for c in CAT_COLS if c in feats]
+#    cat_cols = [c for c in CAT_COLS if c in feats]
 
     # set data structure
     lgb_train = lgb.Dataset(train_df[feats],
                             label=train_df['demand'],
-                            categorical_feature=cat_cols,
+                            categorical_feature=['item_id'],
                             free_raw_data=False)
 
     # params optimized by optuna
     params ={
-            'device' : 'gpu',
-            'gpu_use_dp':True,
+#            'device' : 'gpu',
+#            'gpu_use_dp':True,
             'task': 'train',
             'boosting': 'gbdt',
             'objective': 'poisson',
@@ -90,8 +90,9 @@ def train_lightgbm(train_df,test_df,debug=False):
     reg = lgb.train(
                     params,
                     lgb_train,
+                    valid_sets=[lgb_train],
+                    verbose_eval=100,
                     num_boost_round=2100,
-                    verbose_eval=100
                     )
 
     # save model

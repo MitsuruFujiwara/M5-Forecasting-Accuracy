@@ -8,7 +8,7 @@ import warnings
 
 from tqdm import tqdm
 
-from utils import save2pkl, line_notify, reduce_mem_usage, to_pickles, make_lags
+from utils import save2pkl, line_notify, reduce_mem_usage, to_pickles
 from utils import COLS_TEST1, COLS_TEST2, DAYS_PRED
 
 #===============================================================================
@@ -66,9 +66,6 @@ def main(is_eval=False):
     df = pd.melt(df,id_vars=id_vars,var_name='d',value_name='demand')
 
     print('Melted sales train validation has {} rows and {} columns'.format(df.shape[0], df.shape[1]))
-
-    # make lag features
-    df = make_lags(df)
 
     # reduce memory usage
     df = reduce_mem_usage(df)

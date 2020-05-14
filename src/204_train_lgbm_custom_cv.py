@@ -57,7 +57,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
-    cat_cols = [c for c in CAT_COLS if c in feats]
+#    cat_cols = [c for c in CAT_COLS if c in feats]
     valid_idxs=[]
 
     # k-fold
@@ -71,17 +71,17 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         # set data structure
         lgb_train = lgb.Dataset(train_x,
                                 label=train_y,
-                                categorical_feature=cat_cols,
+                                categorical_feature=['item_id'],
                                 free_raw_data=False)
 
         lgb_test = lgb.Dataset(valid_x,
                                label=valid_y,
-                               categorical_feature=cat_cols,
+                               categorical_feature=['item_id'],
                                free_raw_data=False)
 
         params ={
-                'device' : 'gpu',
-                'gpu_use_dp':True,
+#                'device' : 'gpu',
+#                'gpu_use_dp':True,
                 'task': 'train',
                 'boosting': 'gbdt',
                 'objective': 'poisson',
