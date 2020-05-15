@@ -92,7 +92,7 @@ def train_lightgbm(train_df,test_df,debug=False):
                     lgb_train,
                     valid_sets=[lgb_train],
                     verbose_eval=100,
-                    num_boost_round=2100,
+                    num_boost_round=2200,
                     )
 
     # save model
