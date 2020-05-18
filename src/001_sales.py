@@ -9,7 +9,7 @@ import warnings
 from tqdm import tqdm
 
 from utils import save2pkl, line_notify, reduce_mem_usage, to_pickles
-from utils import COLS_TEST1, COLS_TEST2, DAYS_PRED
+from utils import COLS_TEST1, COLS_TEST2
 
 #===============================================================================
 # preprocess sales
