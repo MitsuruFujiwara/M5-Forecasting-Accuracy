@@ -9,8 +9,9 @@ import warnings
 from glob import glob
 from tqdm import tqdm
 
-from utils import make_lags, submit
+from utils import submit
 from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2
+from utils_lag import make_lags
 
 #==============================================================================
 # Recursive prediction
@@ -31,9 +32,9 @@ def main():
     # Recursive prediction
     print('Recursive prediction...')
     for day in tqdm(range(1914,1914+28)):
-        mask_test = (df['d_numeric']>=day-365)&(df['d_numeric']<=day)
+        mask_test = (df['d_numeric']>=day-28)&(df['d_numeric']<=day)
         tmp_df = df[mask_test]
-#        test_df = make_lags(test_df)
+        test_df = make_lags(test_df)
         df.loc[df['d_numeric']==day,'demand']=reg.predict(tmp_df[tmp_df['d_numeric']==day][feats], num_iteration=reg.best_iteration)
 
         del tmp_df
@@ -71,6 +72,5 @@ def main():
 
 if __name__ == '__main__':
     submission_file_name = "../output/submission_lgbm.csv"
-    oof_file_name = "../output/oof_lgbm.csv"
-    configs = json.load(open('../configs/204_lgbm_custom_cv.json'))
+    configs = json.load(open('../configs/202_lgbm_all_data.json'))
     main()

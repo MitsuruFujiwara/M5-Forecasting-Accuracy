@@ -7,8 +7,9 @@ import pandas as pd
 import sys
 import warnings
 
-from utils import loadpkl, to_feature, line_notify, to_json, read_pickles, make_lags
+from utils import loadpkl, to_feature, line_notify, to_json, read_pickles
 from utils import removeCorrelatedVariables, removeMissingVariables, reduce_mem_usage
+from utils_lag import make_lags
 
 #===============================================================================
 # aggregation

@@ -17,7 +17,7 @@ from sklearn.model_selection import TimeSeriesSplit, KFold, StratifiedKFold, Gro
 from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
-from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, DAYS_PRED, CAT_COLS
+from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
 from utils import CustomTimeSeriesSplitter
 
 #==============================================================================
@@ -56,25 +56,13 @@ def train_lightgbm(train_df,test_df,debug=False):
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
-#    cat_cols = [c for c in CAT_COLS if c in feats]
-
-    # split train & valid
-    train_idx = train_df['date']<='2016-03-27'
-    valid_idx = train_df['date'] > '2016-03-27'
-
-    train_x, train_y = train_df[train_idx][feats], train_df[train_idx]['demand']
-    valid_x, valid_y = train_df[valid_idx][feats], train_df[valid_idx]['demand']
 
     # set data structure
-    lgb_train = lgb.Dataset(train_x,
-                            label=train_y,
-#                            categorical_feature=cat_cols,
+    lgb_train = lgb.Dataset(train_df[feats],
+                            label=train_df['demand'],
                             free_raw_data=False)
-    lgb_test = lgb.Dataset(valid_x,
-                           label=valid_y,
-#                           categorical_feature=cat_cols,
-                           free_raw_data=False)
 
+    # params optimized by optuna
     params ={
             'device' : 'gpu',
             'gpu_use_dp':True,
@@ -100,18 +88,16 @@ def train_lightgbm(train_df,test_df,debug=False):
     reg = lgb.train(
                     params,
                     lgb_train,
-                    valid_sets=[lgb_train, lgb_test],
-                    valid_names=['train', 'test'],
-                    num_boost_round=10000,
-                    early_stopping_rounds=200,
-                    verbose_eval=100
+                    valid_sets=[lgb_train],
+                    verbose_eval=100,
+                    num_boost_round=500,
                     )
 
     # save model
-    reg.save_model('../output/lgbm_holdout.txt')
+    reg.save_model('../output/lgbm_all_data.txt')
 
     # save predictions
-    oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
+    oof_preds += reg.predict(train_df[feats], num_iteration=reg.best_iteration)
     sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration)
 
     # save feature importances
@@ -121,50 +107,24 @@ def train_lightgbm(train_df,test_df,debug=False):
     fold_importance_df["fold"] = 1
     feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
 
-    print('Fold %2d RMSE : %.6f' % (1, rmse(valid_y, oof_preds[valid_idx])))
-    del reg, train_x, train_y, valid_x, valid_y
+    del reg
     gc.collect()
 
-    # Full RMSE score and LINE Notify
-    full_rmse = rmse(train_df[valid_idx]['demand'], oof_preds[valid_idx])
-    line_notify('Full RMSE score %.6f' % full_rmse)
+    # save out of fold prediction
+    train_df.loc[:,'demand'] = oof_preds
+    train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
 
     # display importances
     display_importances(feature_importance_df,
                         '../imp/lgbm_importances_holdout.png',
                         '../imp/feature_importance_lgbm_holdout.csv')
 
-    if not debug:
-        # save out of fold prediction
-        train_df.loc[:,'demand'] = oof_preds
-        train_df = train_df.reset_index()
-        train_df[['id', 'demand']].to_csv(oof_file_name, index=False)
+    # Full RMSE score and LINE Notify
+    full_rmse = rmse(train_df['demand'], oof_preds)
+    line_notify('Full RMSE score %.6f' % full_rmse)
 
-        # reshape prediction for submit
-        test_df.loc[:,'demand'] = sub_preds
-        test_df = test_df.reset_index()
-        preds = test_df[['id','d','demand']].reset_index()
-        preds = preds.pivot(index='id', columns='d', values='demand').reset_index()
-
-        # split test1 / test2
-        preds1 = preds[['id']+COLS_TEST1]
-        preds2 = preds[['id']+COLS_TEST2]
-
-        # change column names
-        preds1.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
-        preds2.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
-
-        # replace test2 id
-        preds2['id']= preds2['id'].str.replace('_validation','_evaluation')
-
-        # merge
-        preds = preds1.append(preds2)
-
-        # save csv
-        preds.to_csv(submission_file_name, index=False)
-
-        # submission by API
-        submit(submission_file_name, comment='model202 cv: %.6f' % full_rmse)
+    # LINE notify
+    line_notify('{} done.'.format(sys.argv[0]))
 
 def main(debug=False):
     with timer("Load Datasets"):
@@ -175,13 +135,8 @@ def main(debug=False):
         # use selected features
         df = df[configs['features']]
 
-        # set id as index
-#        df.set_index('id', inplace=True)
-
-        # sort by date
-#        df.sort_values('date',inplace=True)
-
-        df = df[df['date']>'2015-04-25']
+        # drop old data
+        df = df[df['date']>'2014-04-25']
 
         # split train & test
         #=======================================================================
@@ -200,8 +155,7 @@ def main(debug=False):
         train_lightgbm(train_df, test_df, debug=debug)
 
 if __name__ == "__main__":
-    submission_file_name = "../output/submission_lgbm_holdout.csv"
     oof_file_name = "../output/oof_lgbm_holdout.csv"
-    configs = json.load(open('../configs/202_lgbm_holdout.json'))
+    configs = json.load(open('../configs/202_lgbm_all_data.json'))
     with timer("Full model run"):
         main(debug=False)

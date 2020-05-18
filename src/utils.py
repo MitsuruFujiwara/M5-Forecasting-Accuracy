@@ -29,8 +29,6 @@ COMPETITION_NAME = 'm5-forecasting-accuracy'
 COLS_TEST1 = [f'd_{i}' for i in range(1914,1942)]
 COLS_TEST2 = [f'd_{i}' for i in range(1942,1970)]
 
-DAYS_PRED = 28
-
 # to feather
 def to_feature(df, path):
     if df.columns.duplicated().sum()>0:
@@ -215,30 +213,6 @@ class CustomTimeSeriesSplitter(object):
 
     def get_n_splits(self):
         return self.n_splits
-
-
-# helper for making lag features
-def make_lags(df):
-    # lag features
-    df_grouped = df[['id','demand']].groupby(['id'])['demand']
-
-    print('Add lag features...')
-    for i in tqdm([0,1,2,365]):
-        df[f'demand_lag_{i}'] = df_grouped.shift(DAYS_PRED+i)
-
-    print('Add rolling aggs...')
-    for i in tqdm([7, 30, 60, 90, 180 ,365]):
-        df[f'demand_rolling_mean_{i}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(i).mean())
-        df[f'demand_rolling_std_{i}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(i).std())
-        df[f'demand_rolling_max_{i}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(i).max())
-        df[f'demand_rolling_min_{i}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(i).min())
-        df[f'demand_rolling_skew_{i}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(i).skew())
-        df[f'demand_rolling_kurt_{i}'] = df_grouped.transform(lambda x: x.shift(DAYS_PRED).rolling(i).kurt())
-
-    del df_grouped
-    gc.collect()
-
-    return df
 
 # function for evaluating WRMSSEE
 # ref: https://www.kaggle.com/c/m5-forecasting-accuracy/discussion/133834
