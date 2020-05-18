@@ -56,18 +56,16 @@ def train_lightgbm(train_df,test_df,debug=False):
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
-#    cat_cols = [c for c in CAT_COLS if c in feats]
 
     # set data structure
     lgb_train = lgb.Dataset(train_df[feats],
                             label=train_df['demand'],
-                            categorical_feature=['item_id'],
                             free_raw_data=False)
 
     # params optimized by optuna
     params ={
-#            'device' : 'gpu',
-#            'gpu_use_dp':True,
+            'device' : 'gpu',
+            'gpu_use_dp':True,
             'task': 'train',
             'boosting': 'gbdt',
             'objective': 'poisson',
@@ -109,7 +107,6 @@ def train_lightgbm(train_df,test_df,debug=False):
     fold_importance_df["fold"] = 1
     feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
 
-#    print('Fold %2d RMSE : %.6f' % (1, rmse(valid_y, oof_preds[valid_idx])))
     del reg
     gc.collect()
 
@@ -152,7 +149,7 @@ def train_lightgbm(train_df,test_df,debug=False):
         preds.to_csv(submission_file_name, index=False)
 
         # submission by API
-        submit(submission_file_name, comment='model203 cv: %.6f' % full_rmse)
+#        submit(submission_file_name, comment='model203 cv: %.6f' % full_rmse)
 
 def main(debug=False):
     with timer("Load Datasets"):

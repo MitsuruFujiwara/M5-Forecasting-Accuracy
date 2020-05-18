@@ -222,7 +222,6 @@ def make_lags(df):
     # lag features
     df_grouped = df[['id','demand']].groupby(['id'])['demand']
 
-
     print('Add lag features...')
     for i in tqdm([0,1,2,365]):
         df[f'demand_lag_{i}'] = df_grouped.shift(DAYS_PRED+i)

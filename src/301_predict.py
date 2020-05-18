@@ -1,16 +1,22 @@
 
+import gc
+import json
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
+import warnings
 
 from glob import glob
 from tqdm import tqdm
 
-from utils import FEATS_EXCLUDED
+from utils import make_lags, submit
+from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2
 
 #==============================================================================
 # Recursive prediction
 #==============================================================================
+
+warnings.filterwarnings('ignore')
 
 def main():
     # load feathers
@@ -19,21 +25,27 @@ def main():
     df = df[configs['features']]
     feats = [f for f in df.columns if f not in FEATS_EXCLUDED]
 
-    # TODO: 
+    # load model
+    reg = lgb.Booster(model_file='../output/lgbm_all_data.txt')
+
     # Recursive prediction
-    for i, day in enumerate(np.arange(1914, 1914 + 28)):
-        test_df = df[(df['d_numeric']>=day-180)&(df['d_numeric']<=day)]
+    print('Recursive prediction...')
+    for day in tqdm(range(1914,1914+28)):
+        mask_test = (df['d_numeric']>=day-365)&(df['d_numeric']<=day)
+        tmp_df = df[mask_test]
+#        test_df = make_lags(test_df)
+        df.loc[df['d_numeric']==day,'demand']=reg.predict(tmp_df[tmp_df['d_numeric']==day][feats], num_iteration=reg.best_iteration)
 
+        del tmp_df
+        gc.collect()
 
+    # split test
+    test_df = df[df['date']>='2016-04-25']
 
-    # save out of fold prediction
-    train_df.loc[:,'demand'] = oof_preds
-    train_df = train_df.reset_index()
-    train_df[['id', 'demand']].to_csv(oof_file_name, index=False)
+    del df
+    gc.collect()
 
     # reshape prediction for submit
-    test_df.loc[:,'demand'] = sub_preds
-    test_df = test_df.reset_index()
     preds = test_df[['id','d','demand']].reset_index()
     preds = preds.pivot(index='id', columns='d', values='demand').reset_index()
 
@@ -55,7 +67,7 @@ def main():
     preds.to_csv(submission_file_name, index=False)
 
     # submission by API
-    submit(submission_file_name, comment='model202 cv: %.6f' % full_rmse)
+    submit(submission_file_name, comment='model301 recursive prediction')
 
 if __name__ == '__main__':
     submission_file_name = "../output/submission_lgbm.csv"

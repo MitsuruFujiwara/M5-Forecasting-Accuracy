@@ -59,6 +59,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 #    cat_cols = [c for c in CAT_COLS if c in feats]
     valid_idxs=[]
+    avg_best_iteration = 0 # average of best iteration
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df)):
@@ -71,12 +72,10 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         # set data structure
         lgb_train = lgb.Dataset(train_x,
                                 label=train_y,
-                                categorical_feature=['item_id'],
                                 free_raw_data=False)
 
         lgb_test = lgb.Dataset(valid_x,
                                label=valid_y,
-                               categorical_feature=['item_id'],
                                free_raw_data=False)
 
         params ={
@@ -117,6 +116,9 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         # save predictions
         oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
         sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration) / folds.n_splits
+
+        # save best iteration
+        avg_best_iteration = reg.best_iteration / folds.n_splits
 
         # save feature importances
         fold_importance_df = pd.DataFrame()
