@@ -34,7 +34,7 @@ def main():
     for day in tqdm(range(1914,1914+28)):
         mask_test = (df['d_numeric']>=day-28)&(df['d_numeric']<=day)
         tmp_df = df[mask_test]
-        test_df = make_lags(test_df)
+        tmp_df = make_lags(tmp_df)
         df.loc[df['d_numeric']==day,'demand']=reg.predict(tmp_df[tmp_df['d_numeric']==day][feats], num_iteration=reg.best_iteration)
 
         del tmp_df
