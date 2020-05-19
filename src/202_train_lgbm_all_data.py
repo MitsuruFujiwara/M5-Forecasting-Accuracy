@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils import CustomTimeSeriesSplitter
+from utils import custom_asymmetric_train, custom_asymmetric_valid
 
 #==============================================================================
 # Train LightGBM with Simple Hold Out
@@ -69,7 +69,7 @@ def train_lightgbm(train_df,test_df,debug=False):
             'task': 'train',
             'boosting': 'gbdt',
             'objective': 'poisson',
-            'metric': 'rmse',
+#            'metric': 'rmse',
             'learning_rate': 0.05,
             'max_depth': 5,
             'max_leaves':int(.7*5** 2),
@@ -90,7 +90,9 @@ def train_lightgbm(train_df,test_df,debug=False):
                     lgb_train,
                     valid_sets=[lgb_train],
                     verbose_eval=100,
-                    num_boost_round=1500,
+                    num_boost_round=3765,
+                    fobj = custom_asymmetric_train,
+                    feval = custom_asymmetric_valid,
                     )
 
     # save model

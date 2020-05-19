@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils import CustomTimeSeriesSplitter
+from utils import CustomTimeSeriesSplitter, custom_asymmetric_train, custom_asymmetric_valid
 
 #==============================================================================
 # Train LightGBM with custom cv
@@ -79,12 +79,12 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                                free_raw_data=False)
 
         params ={
-#                'device' : 'gpu',
-#                'gpu_use_dp':True,
+                'device' : 'gpu',
+                'gpu_use_dp':True,
                 'task': 'train',
                 'boosting': 'gbdt',
                 'objective': 'poisson',
-                'metric': 'rmse',
+#                'metric': 'rmse',
                 'learning_rate': 0.05,
                 'max_depth': 5,
                 'max_leaves':int(.7*5** 2),
@@ -96,7 +96,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                 'verbose': -1,
                 'seed':326,
                 'bagging_seed':326,
-                'drop_seed':326
+                'drop_seed':326,
+#                'num_threads':-1
                 }
 
         # train model
@@ -106,6 +107,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                         valid_sets=[lgb_train, lgb_test],
                         valid_names=['train', 'test'],
                         num_boost_round=10000,
+                        fobj = custom_asymmetric_train,
+                        feval = custom_asymmetric_valid,
                         early_stopping_rounds=200,
                         verbose_eval=100
                         )
@@ -131,10 +134,6 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         del reg, train_x, train_y, valid_x, valid_y
         gc.collect()
 
-    # save out of fold prediction
-    train_df.loc[:,'demand'] = oof_preds
-    train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
-
     # display importances
     display_importances(feature_importance_df,
                         '../imp/lgbm_importances.png',
@@ -143,6 +142,10 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     # Full RMSE score and LINE Notify
     full_rmse = rmse(train_df['demand'][valid_idxs], oof_preds[valid_idxs])
     line_notify('Full RMSE score %.6f' % full_rmse)
+
+    # save out of fold prediction
+    train_df.loc[:,'demand'] = oof_preds
+    train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
 
     # LINE notify
     line_notify('{} done. best iteration:{}'.format(sys.argv[0],int(avg_best_iteration)))
