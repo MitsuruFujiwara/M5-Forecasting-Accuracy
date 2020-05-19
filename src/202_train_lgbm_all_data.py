@@ -90,7 +90,7 @@ def train_lightgbm(train_df,test_df,debug=False):
                     lgb_train,
                     valid_sets=[lgb_train],
                     verbose_eval=100,
-                    num_boost_round=500,
+                    num_boost_round=1500,
                     )
 
     # save model
@@ -110,18 +110,18 @@ def train_lightgbm(train_df,test_df,debug=False):
     del reg
     gc.collect()
 
-    # save out of fold prediction
-    train_df.loc[:,'demand'] = oof_preds
-    train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
-
     # display importances
     display_importances(feature_importance_df,
-                        '../imp/lgbm_importances_holdout.png',
-                        '../imp/feature_importance_lgbm_holdout.csv')
+                        '../imp/lgbm_importances_all_data.png',
+                        '../imp/feature_importance_lgbm_all_data.csv')
 
     # Full RMSE score and LINE Notify
     full_rmse = rmse(train_df['demand'], oof_preds)
     line_notify('Full RMSE score %.6f' % full_rmse)
+
+    # save out of fold prediction
+    train_df.loc[:,'demand'] = oof_preds
+    train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
 
     # LINE notify
     line_notify('{} done.'.format(sys.argv[0]))

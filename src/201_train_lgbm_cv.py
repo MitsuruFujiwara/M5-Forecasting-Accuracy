@@ -145,7 +145,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     line_notify('Full RMSE score %.6f' % full_rmse)
 
     # LINE notify
-    line_notify('{} done.'.format(sys.argv[0]))
+    line_notify('{} done. best iteration:{}'.format(sys.argv[0],int(avg_best_iteration)))
 
 def main(debug=False):
     with timer("Load Datasets"):
