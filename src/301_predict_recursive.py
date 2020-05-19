@@ -35,7 +35,7 @@ def main():
         mask_test = (df['d_numeric']>=day-28)&(df['d_numeric']<=day)
         tmp_df = df[mask_test]
         tmp_df = make_lags(tmp_df)
-        df.loc[df['d_numeric']==day,'demand']=reg.predict(tmp_df[tmp_df['d_numeric']==day][feats], num_iteration=reg.best_iteration)
+        df.loc[mask_test,'demand']=reg.predict(tmp_df[feats], num_iteration=reg.best_iteration)
 
         del tmp_df
         gc.collect()
