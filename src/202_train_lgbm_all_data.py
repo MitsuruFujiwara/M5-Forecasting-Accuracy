@@ -64,8 +64,8 @@ def train_lightgbm(train_df,test_df,debug=False):
 
     # params optimized by optuna
     params ={
-            'device' : 'gpu',
-            'gpu_use_dp':True,
+#            'device' : 'gpu',
+#            'gpu_use_dp':True,
             'task': 'train',
             'boosting': 'gbdt',
             'objective': 'poisson',
@@ -81,7 +81,8 @@ def train_lightgbm(train_df,test_df,debug=False):
             'verbose': -1,
             'seed':326,
             'bagging_seed':326,
-            'drop_seed':326
+            'drop_seed':326,
+            'num_threads':-1
             }
 
     # train model
