@@ -91,7 +91,7 @@ def train_lightgbm(train_df,test_df,debug=False):
                     lgb_train,
                     valid_sets=[lgb_train],
                     verbose_eval=100,
-                    num_boost_round=3765,
+                    num_boost_round=1003,
                     fobj = custom_asymmetric_train,
                     feval = custom_asymmetric_valid,
                     )

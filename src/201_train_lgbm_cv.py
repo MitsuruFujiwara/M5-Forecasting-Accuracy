@@ -121,7 +121,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration) / folds.n_splits
 
         # save best iteration
-        avg_best_iteration = reg.best_iteration / folds.n_splits
+        avg_best_iteration += reg.best_iteration / folds.n_splits
 
         # save feature importances
         fold_importance_df = pd.DataFrame()
