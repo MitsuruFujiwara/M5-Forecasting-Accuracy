@@ -148,7 +148,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
 
     # save number of best iteration
-    configs['num_boost_round'] = avg_best_iteration
+    configs['num_boost_round'] = int(avg_best_iteration)
     to_json(configs, '../configs/202_lgbm_all_data.json')
 
     # LINE notify
