@@ -152,7 +152,7 @@ def train_lightgbm(train_df,test_df,debug=False):
         preds.to_csv(submission_file_name, index=False)
 
         # submission by API
-        submit(submission_file_name, comment='model203 cv: %.6f' % full_rmse)
+        submit(submission_file_name, comment='model202 cv: %.6f' % full_rmse)
 
 def main(debug=False):
     with timer("Load Datasets"):
@@ -183,6 +183,7 @@ def main(debug=False):
         train_lightgbm(train_df, test_df, debug=debug)
 
 if __name__ == "__main__":
+    submission_file_name = "../output/submission_lgbm.csv"
     oof_file_name = "../output/oof_lgbm_holdout.csv"
     configs = json.load(open('../configs/202_lgbm_all_data.json'))
     with timer("Full model run"):
