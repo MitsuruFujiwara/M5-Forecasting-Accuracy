@@ -9,7 +9,7 @@ import warnings
 
 from utils import loadpkl, to_feature, line_notify, to_json, read_pickles
 from utils import removeCorrelatedVariables, removeMissingVariables, reduce_mem_usage
-from utils_lag import make_lags
+from utils_lag import make_lags, make_lags_28
 
 #===============================================================================
 # aggregation
@@ -35,7 +35,8 @@ def main():
     df = df[df['wm_yr_wk']>=df['release']]
 
     # make lag features
-    df = make_lags(df)
+#    df = make_lags(df)
+    df = make_lags_28(df)
 
     # label encoding
     cols_string = ['item_id','dept_id','cat_id','store_id','state_id']

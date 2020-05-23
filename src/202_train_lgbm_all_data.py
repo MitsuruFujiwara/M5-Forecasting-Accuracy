@@ -91,7 +91,7 @@ def train_lightgbm(train_df,test_df,debug=False):
                     lgb_train,
                     valid_sets=[lgb_train],
                     verbose_eval=100,
-                    num_boost_round=1003,
+                    num_boost_round=configs['num_boost_round'],
                     fobj = custom_asymmetric_train,
                     feval = custom_asymmetric_valid,
                     )
@@ -113,21 +113,46 @@ def train_lightgbm(train_df,test_df,debug=False):
     del reg
     gc.collect()
 
-    # display importances
-    display_importances(feature_importance_df,
-                        '../imp/lgbm_importances_all_data.png',
-                        '../imp/feature_importance_lgbm_all_data.csv')
-
     # Full RMSE score and LINE Notify
     full_rmse = rmse(train_df['demand'], oof_preds)
     line_notify('Full RMSE score %.6f' % full_rmse)
 
-    # save out of fold prediction
-    train_df.loc[:,'demand'] = oof_preds
-    train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
+    # display importances
+    display_importances(feature_importance_df,
+                        '../imp/lgbm_importances_holdout.png',
+                        '../imp/feature_importance_lgbm_holdout.csv')
 
-    # LINE notify
-    line_notify('{} done.'.format(sys.argv[0]))
+    if not debug:
+        # save out of fold prediction
+        train_df.loc[:,'demand'] = oof_preds
+        train_df = train_df.reset_index()
+        train_df[['id', 'demand']].to_csv(oof_file_name, index=False)
+
+        # reshape prediction for submit
+        test_df.loc[:,'demand'] = sub_preds
+        test_df = test_df.reset_index()
+        preds = test_df[['id','d','demand']].reset_index()
+        preds = preds.pivot(index='id', columns='d', values='demand').reset_index()
+
+        # split test1 / test2
+        preds1 = preds[['id']+COLS_TEST1]
+        preds2 = preds[['id']+COLS_TEST2]
+
+        # change column names
+        preds1.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
+        preds2.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
+
+        # replace test2 id
+        preds2['id']= preds2['id'].str.replace('_validation','_evaluation')
+
+        # merge
+        preds = preds1.append(preds2)
+
+        # save csv
+        preds.to_csv(submission_file_name, index=False)
+
+        # submission by API
+        submit(submission_file_name, comment='model203 cv: %.6f' % full_rmse)
 
 def main(debug=False):
     with timer("Load Datasets"):
