@@ -69,6 +69,9 @@ def main(is_eval=False):
     df['is_holiday_wi'] = df['date'].apply(lambda x: 1 if x in holidays_wi else 0)
 
     # preprocess event_name_1
+    # to datetime
+    df['date'] = pd.to_datetime(df['date'])
+
     # add ramadan end dates
     ramadan_end_dates = ['2011-8-29','2012-8-18','2013-8-7','2014-7-27','2015-7-16','2016-7-5']
     for d in ramadan_end_dates:
