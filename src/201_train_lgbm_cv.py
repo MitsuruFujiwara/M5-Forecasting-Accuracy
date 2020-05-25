@@ -66,6 +66,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['demand'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
 
+        # TODO: target encoding
+
         # save validation indexes
         valid_idxs += list(valid_idx)
 
@@ -83,16 +85,16 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 #                'gpu_use_dp':True,
                 'task': 'train',
                 'boosting': 'gbdt',
-                'objective': 'poisson',
-#                'metric': 'rmse',
-                'learning_rate': 0.05,
-                'max_depth': 5,
-                'max_leaves':int(.7*5** 2),
-                'colsample_bytree': 1.0,
-                'subsample': 0.9,
-                'reg_lambda': 1,
-                'reg_alpha': 0,
-                'min_child_weight': 1,
+#                'objective': 'poisson',
+                'learning_rate': 0.1,
+                'bagging_fraction': 0.85,
+                'bagging_freq': 1,
+                'colsample_bytree': 0.85,
+                'colsample_bynode': 0.85,
+                'min_data_per_leaf': 25,
+                'num_leaves': 200,
+                'lambda_l1': 0.5,
+                'lambda_l2': 0.5,
                 'verbose': -1,
                 'seed':326,
                 'bagging_seed':326,

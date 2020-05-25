@@ -78,3 +78,7 @@ def make_lags(df):
     gc.collect()
 
     return df
+
+# TODO:target encoding
+def target_encoding(train_df,test_df):
+    return
