@@ -67,9 +67,6 @@ def main(is_eval=False):
 
     print('Melted sales train validation has {} rows and {} columns'.format(df.shape[0], df.shape[1]))
 
-    # reduce memory usage
-    df = reduce_mem_usage(df)
-
     # add numeric date
     df['d_numeric'] = df['d'].apply(lambda x: int(x[2:]))
 

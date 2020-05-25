@@ -38,6 +38,7 @@
         "is_pesach",
         "is_purim",
         "is_chanukah",
+        "is_blackfriday",
         "sell_price",
         "release",
         "price_max",
@@ -51,6 +52,7 @@
         "demand_lag_0",
         "demand_lag_7",
         "demand_lag_14",
+        "demand_lag_21",
         "demand_lag_28",
         "demand_rolling_mean_7",
         "demand_rolling_std_7",
@@ -64,6 +66,12 @@
         "demand_rolling_min_14",
         "demand_rolling_skew_14",
         "demand_rolling_kurt_14",
+        "demand_rolling_mean_21",
+        "demand_rolling_std_21",
+        "demand_rolling_max_21",
+        "demand_rolling_min_21",
+        "demand_rolling_skew_21",
+        "demand_rolling_kurt_21",
         "demand_rolling_mean_28",
         "demand_rolling_std_28",
         "demand_rolling_max_28",
@@ -78,6 +86,5 @@
         "rolling_price_std_t30",
         "price_momentum_m",
         "price_momentum_y"
-    ],
-    "num_boost_round": 1539
+    ]
 }
