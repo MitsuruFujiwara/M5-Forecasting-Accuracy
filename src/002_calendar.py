@@ -148,6 +148,12 @@ def main(is_eval=False):
     df['is_purim'] = is_purim
     df['is_chanukah'] = is_chanukah
 
+    # add blackfriday flag
+    blackfriday_dates = ['2011-11-25','2012-11-23','2013-11-29','2014-11-28','2015-11-27']
+    df['is_blackfriday']=0
+    for d in blackfriday_dates:
+        df.loc[df['date']==d,'is_blackfriday'] = 1
+
     # factorize numerical columns
     cols_string = ['event_name_1','event_type_1','event_name_2','event_type_2']
     for c in cols_string:

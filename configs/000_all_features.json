@@ -38,6 +38,7 @@
         "is_pesach",
         "is_purim",
         "is_chanukah",
+        "is_blackfriday",
         "sell_price",
         "release",
         "price_max",

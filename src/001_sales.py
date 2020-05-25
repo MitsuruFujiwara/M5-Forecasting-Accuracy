@@ -74,7 +74,16 @@ def main(is_eval=False):
     df['d_numeric'] = df['d'].apply(lambda x: int(x[2:]))
 
     # drop old data (~2012/12/31)
+    print('drop old data...')
     df = df[df['d_numeric']>=704]
+
+    # drop christmas data
+    print('drop christmas data...')
+    df = df[df['d_numeric']!=331] # 2011-12-25
+    df = df[df['d_numeric']!=697] # 2012-12-25
+    df = df[df['d_numeric']!=1062] # 2013-12-25
+    df = df[df['d_numeric']!=1427] # 2014-12-25
+    df = df[df['d_numeric']!=1792] # 2015-12-25
 
     # save pkl
 #    save2pkl('../feats/sales.pkl', df)

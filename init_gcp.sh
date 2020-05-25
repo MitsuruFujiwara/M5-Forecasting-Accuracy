@@ -12,6 +12,7 @@ rm Anaconda3-2019.10-Linux-x86_64.sh
 conda install -c conda-forge feather-format
 conda install -c conda-forge lightgbm
 pip install kaggle
+pip install holidays
 
 # kaggle API用のjsonファイルを所定の位置に移動（設定ボタン→ファイルをアップロード）
 mv kaggle.json /home/fujiwara52jp/.kaggle
