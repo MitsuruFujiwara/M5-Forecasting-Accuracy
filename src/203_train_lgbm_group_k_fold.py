@@ -108,7 +108,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                         )
 
         # save model
-        reg.save_model('../output/lgbm_'+str(n_fold)+'.txt')
+        reg.save_model('../output/lgbm_group_k_fold_'+str(n_fold)+'.txt')
 
         # save predictions
         oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
@@ -130,8 +130,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 
     # display importances
     display_importances(feature_importance_df,
-                        '../imp/lgbm_importances.png',
-                        '../imp/feature_importance_lgbm.csv')
+                        '../imp/lgbm_importances_group_k_fold.png',
+                        '../imp/feature_importance_lgbm_group_k_fold.csv')
 
     # Full RMSE score and LINE Notify
     full_rmse = rmse(train_df['demand'][valid_idxs], oof_preds[valid_idxs])

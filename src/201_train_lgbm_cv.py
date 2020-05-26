@@ -86,7 +86,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                 'task': 'train',
                 'boosting': 'gbdt',
 #                'objective': 'poisson',
-                'learning_rate': 0.1,
+                'learning_rate': 0.01,
                 'bagging_fraction': 0.85,
                 'bagging_freq': 1,
                 'colsample_bytree': 0.85,
@@ -138,8 +138,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 
     # display importances
     display_importances(feature_importance_df,
-                        '../imp/lgbm_importances.png',
-                        '../imp/feature_importance_lgbm.csv')
+                        '../imp/lgbm_importances_cv.png',
+                        '../imp/feature_importance_lgbm_cv.csv')
 
     # Full RMSE score and LINE Notify
     full_rmse = rmse(train_df['demand'][valid_idxs], oof_preds[valid_idxs])
@@ -184,7 +184,7 @@ def main(debug=False):
         kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, debug=debug)
 
 if __name__ == "__main__":
-    oof_file_name = "../output/oof_lgbm.csv"
+    oof_file_name = "../output/oof_lgbm_cv.csv"
     configs = json.load(open('../configs/201_lgbm_cv.json'))
     with timer("Full model run"):
         main(debug=False)
