@@ -12,14 +12,15 @@ import warnings
 
 from contextlib import contextmanager
 from glob import glob
+from sklearn.model_selection import GroupKFold
 from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils import CustomTimeSeriesSplitter, custom_asymmetric_train, custom_asymmetric_valid
+from utils import custom_asymmetric_train, custom_asymmetric_valid
 
 #==============================================================================
-# Train LightGBM with custom cv
+# Train LightGBM with group k-fold
 #==============================================================================
 
 warnings.filterwarnings('ignore')
@@ -50,26 +51,18 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     print("Starting LightGBM. Train shape: {}".format(train_df.shape))
 
     # Cross validation
-    folds = CustomTimeSeriesSplitter(end_train=1913)
+    folds = GroupKFold(n_splits= num_folds)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
-#    cat_cols = [c for c in CAT_COLS if c in feats]
-    valid_idxs=[]
-    avg_best_iteration = 0 # average of best iteration
 
     # k-fold
-    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df)):
+    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], groups=train_df['d_numeric'])):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['demand'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
-
-        # TODO: target encoding
-
-        # save validation indexes
-        valid_idxs += list(valid_idx)
 
         # set data structure
         lgb_train = lgb.Dataset(train_x,
@@ -85,7 +78,6 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 #                'gpu_use_dp':True,
                 'task': 'train',
                 'boosting': 'gbdt',
-#                'objective': 'poisson',
                 'learning_rate': 0.1,
                 'bagging_fraction': 0.85,
                 'bagging_freq': 1,
@@ -145,16 +137,40 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     full_rmse = rmse(train_df['demand'][valid_idxs], oof_preds[valid_idxs])
     line_notify('Full RMSE score %.6f' % full_rmse)
 
-    # save out of fold prediction
-    train_df.loc[:,'demand'] = oof_preds
-    train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
+    if not debug:
+        # save out of fold prediction
+        train_df.loc[:,'demand'] = oof_preds
+        train_df = train_df.reset_index()
+        train_df[['id', 'demand']].to_csv(oof_file_name, index=False)
 
-    # save number of best iteration
-    configs['num_boost_round'] = int(avg_best_iteration)
-    to_json(configs, '../configs/202_lgbm_all_data.json')
+        # reshape prediction for submit
+        test_df.loc[:,'demand'] = sub_preds
+        test_df = test_df.reset_index()
+        preds = test_df[['id','d','demand']].reset_index()
+        preds = preds.pivot(index='id', columns='d', values='demand').reset_index()
+
+        # split test1 / test2
+        preds1 = preds[['id']+COLS_TEST1]
+        preds2 = preds[['id']+COLS_TEST2]
+
+        # change column names
+        preds1.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
+        preds2.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
+
+        # replace test2 id
+        preds2['id']= preds2['id'].str.replace('_validation','_evaluation')
+
+        # merge
+        preds = preds1.append(preds2)
+
+        # save csv
+        preds.to_csv(submission_file_name, index=False)
+
+        # submission by API
+        submit(submission_file_name, comment='model203 cv: %.6f' % full_rmse)
 
     # LINE notify
-    line_notify('{} done. best iteration:{}'.format(sys.argv[0],int(avg_best_iteration)))
+    line_notify('{} done.'.format(sys.argv[0]))
 
 def main(debug=False):
     with timer("Load Datasets"):
@@ -184,7 +200,8 @@ def main(debug=False):
         kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, debug=debug)
 
 if __name__ == "__main__":
-    oof_file_name = "../output/oof_lgbm.csv"
-    configs = json.load(open('../configs/201_lgbm_cv.json'))
+    submission_file_name = "../output/submission_lgbm_group_k_fold.csv"
+    oof_file_name = "../output/oof_lgbm_group_k_fold.csv"
+    configs = json.load(open('../configs/203_lgbm_group_k_fold.json'))
     with timer("Full model run"):
         main(debug=False)
