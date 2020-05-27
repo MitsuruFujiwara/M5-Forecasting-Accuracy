@@ -64,8 +64,8 @@ def train_lightgbm(train_df,test_df,debug=False):
 
     # params optimized by optuna
     params ={
-#            'device' : 'gpu',
-#            'gpu_use_dp':True,
+            'device' : 'gpu',
+            'gpu_use_dp':True,
             'task': 'train',
             'boosting': 'gbdt',
             'learning_rate': 0.1,
