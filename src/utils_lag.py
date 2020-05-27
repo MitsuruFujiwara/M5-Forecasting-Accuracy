@@ -13,11 +13,11 @@ def make_lags(df,days=28):
     df_grouped = df[['id','demand']].groupby(['id'])['demand']
 
     print('Add lag features...')
-    for i in tqdm([0,1,2,3,4,5,6,7,14,21,28]):
+    for i in tqdm([0,7,14,21,28]):
         df[f'demand_lag_{days}_{i}'] = df_grouped.shift(days+i)
 
     print('Add rolling aggs...')
-    for i in tqdm([7,14,21,28,56]):
+    for i in tqdm([7,14,21,28]):
         df[f'demand_rolling_mean_{days}_{i}'] = df_grouped.transform(lambda x: x.shift(days).rolling(i).mean())
         df[f'demand_rolling_std_{days}_{i}'] = df_grouped.transform(lambda x: x.shift(days).rolling(i).std())
         df[f'demand_rolling_max_{days}_{i}'] = df_grouped.transform(lambda x: x.shift(days).rolling(i).max())

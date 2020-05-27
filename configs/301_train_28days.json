@@ -51,12 +51,6 @@
         "item_nunique",
         "price_momentum",
         "demand_lag_28_0",
-        "demand_lag_28_1",
-        "demand_lag_28_2",
-        "demand_lag_28_3",
-        "demand_lag_28_4",
-        "demand_lag_28_5",
-        "demand_lag_28_6",
         "demand_lag_28_7",
         "demand_lag_28_14",
         "demand_lag_28_21",
@@ -85,12 +79,6 @@
         "demand_rolling_min_28_28",
         "demand_rolling_skew_28_28",
         "demand_rolling_kurt_28_28",
-        "demand_rolling_mean_28_56",
-        "demand_rolling_std_28_56",
-        "demand_rolling_max_28_56",
-        "demand_rolling_min_28_56",
-        "demand_rolling_skew_28_56",
-        "demand_rolling_kurt_28_56",
         "shift_price_t1",
         "price_change_t1",
         "rolling_price_max_t365",
@@ -100,5 +88,5 @@
         "price_momentum_m",
         "price_momentum_y"
     ],
-    "num_boost_round": 256
+    "num_boost_round": 418
 }

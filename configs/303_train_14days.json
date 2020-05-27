@@ -87,5 +87,6 @@
         "rolling_price_std_t30",
         "price_momentum_m",
         "price_momentum_y"
-    ]
+    ],
+    "num_boost_round": 418
 }
