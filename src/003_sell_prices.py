@@ -25,6 +25,9 @@ def main(is_eval=False):
     # merge release week
     df = df.merge(release_df, on=['store_id','item_id'],how='left')
 
+    # days from release
+    df['days_from_release'] = df['wm_yr_wk'] - df['release']
+
     # basic aggregations
     df['price_max'] = df.groupby(['store_id','item_id'])['sell_price'].transform('max')
     df['price_min'] = df.groupby(['store_id','item_id'])['sell_price'].transform('min')

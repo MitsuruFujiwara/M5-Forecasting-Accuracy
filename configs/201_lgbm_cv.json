@@ -12,6 +12,7 @@
         "d_numeric",
         "date",
         "wm_yr_wk",
+        "days_from_release",
         "wday",
         "month",
         "year",

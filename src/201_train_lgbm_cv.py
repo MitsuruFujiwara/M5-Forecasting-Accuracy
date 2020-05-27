@@ -81,12 +81,11 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                                free_raw_data=False)
 
         params ={
-#                'device' : 'gpu',
-#                'gpu_use_dp':True,
+                'device' : 'gpu',
+                'gpu_use_dp':True,
                 'task': 'train',
                 'boosting': 'gbdt',
-#                'objective': 'poisson',
-                'learning_rate': 0.01,
+                'learning_rate': 0.1,
                 'bagging_fraction': 0.85,
                 'bagging_freq': 1,
                 'colsample_bytree': 0.85,

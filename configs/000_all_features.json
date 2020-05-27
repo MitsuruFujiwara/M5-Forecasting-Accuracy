@@ -41,6 +41,7 @@
         "is_blackfriday",
         "sell_price",
         "release",
+        "days_from_release",
         "price_max",
         "price_min",
         "price_std",
