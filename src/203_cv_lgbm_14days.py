@@ -19,7 +19,7 @@ from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
 from utils import CustomTimeSeriesSplitter, custom_asymmetric_train, custom_asymmetric_valid
 
 #==============================================================================
-# Train LightGBM with custom cv
+# Train LightGBM with custom cv (14days lag)
 #==============================================================================
 
 warnings.filterwarnings('ignore')
@@ -57,7 +57,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
-#    cat_cols = [c for c in CAT_COLS if c in feats]
+
     valid_idxs=[]
     avg_best_iteration = 0 # average of best iteration
 
@@ -115,7 +115,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                         )
 
         # save model
-        reg.save_model('../output/lgbm_'+str(n_fold)+'.txt')
+        reg.save_model(f'../output/lgbm_14days_{n_fold}.txt')
 
         # save predictions
         oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
@@ -137,8 +137,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 
     # display importances
     display_importances(feature_importance_df,
-                        '../imp/lgbm_importances_cv.png',
-                        '../imp/feature_importance_lgbm_cv.csv')
+                        '../imp/lgbm_importances_cv_14days.png',
+                        '../imp/feature_importance_lgbm_cv_14days.csv')
 
     # Full RMSE score and LINE Notify
     full_rmse = rmse(train_df['demand'][valid_idxs], oof_preds[valid_idxs])
@@ -150,7 +150,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 
     # save number of best iteration
     configs['num_boost_round'] = int(avg_best_iteration)
-    to_json(configs, '../configs/202_lgbm_all_data.json')
+    to_json(configs, '../configs/303_train_14days.json')
 
     # LINE notify
     line_notify('{} done. best iteration:{}'.format(sys.argv[0],int(avg_best_iteration)))
@@ -158,7 +158,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 def main(debug=False):
     with timer("Load Datasets"):
         # load feathers
-        files = sorted(glob('../feats/*.feather'))
+        files = sorted(glob('../feats/f103_*.feather'))
         df = pd.concat([pd.read_feather(f) for f in tqdm(files, mininterval=60)], axis=1)
 
         # use selected features
@@ -183,7 +183,7 @@ def main(debug=False):
         kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, debug=debug)
 
 if __name__ == "__main__":
-    oof_file_name = "../output/oof_lgbm_cv.csv"
-    configs = json.load(open('../configs/201_lgbm_cv.json'))
+    oof_file_name = "../output/oof_lgbm_cv_14days.csv"
+    configs = json.load(open('../configs/203_cv_14days.json'))
     with timer("Full model run"):
         main(debug=False)

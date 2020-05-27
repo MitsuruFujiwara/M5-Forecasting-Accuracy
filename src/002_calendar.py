@@ -9,7 +9,7 @@ import warnings
 
 from math import ceil
 
-from utils import save2pkl, line_notify
+from utils import save2pkl, line_notify, reduce_mem_usage
 
 #===============================================================================
 # preprocess sell calendar
@@ -162,6 +162,9 @@ def main(is_eval=False):
     for c in cols_string:
         df[c], _ = pd.factorize(df[c])
         df[c].replace(-1,np.nan,inplace=True)
+
+    # reduce memory usage
+    df = reduce_mem_usage(df)
 
     # save pkl
     save2pkl('../feats/calendar.pkl', df)

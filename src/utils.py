@@ -36,7 +36,7 @@ def to_feature(df, path):
     df.reset_index(inplace=True)
     df.columns = [c.replace('/', '-').replace(' ', '-') for c in df.columns]
     for c in df.columns:
-        df[[c]].to_feather('{}/{}.feather'.format(path,c))
+        df[[c]].to_feather('{}_{}.feather'.format(path,c))
     return
 
 # rmse
@@ -198,7 +198,7 @@ def custom_asymmetric_valid(y_pred, y_true):
     residual = (y_true - y_pred).astype("float")
     loss = np.where(residual < 0, (residual ** 2) , (residual ** 2) * 1.15)
     return "custom_asymmetric_eval", np.mean(loss), False
-    
+
 # custom time series splitter
 class CustomTimeSeriesSplitter(object):
     """

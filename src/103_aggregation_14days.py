@@ -9,17 +9,16 @@ import warnings
 
 from utils import loadpkl, to_feature, line_notify, to_json, read_pickles
 from utils import removeCorrelatedVariables, removeMissingVariables, reduce_mem_usage
-from utils_lag import make_lags, make_lags_28
+from utils_lag import make_lags
 
 #===============================================================================
-# aggregation
+# aggregation (14days lag)
 #===============================================================================
 
 warnings.simplefilter(action='ignore')
 
 def main():
     # load pkls
-#    df = loadpkl('../feats/sales.pkl')
     df = read_pickles('../feats/sales')
     df_calendar = loadpkl('../feats/calendar.pkl')
     df_sell_prices = loadpkl('../feats/sell_prices.pkl')
@@ -35,8 +34,7 @@ def main():
     df = df[df['wm_yr_wk']>=df['release']]
 
     # make lag features
-#    df = make_lags(df)
-    df = make_lags_28(df)
+    df = make_lags(df,14)
 
     # label encoding
     cols_string = ['item_id','dept_id','cat_id','store_id','state_id']
@@ -67,11 +65,11 @@ def main():
     df = reduce_mem_usage(df)
 
     # save as feather
-    to_feature(df, '../feats')
+    to_feature(df, '../feats/f103')
 
     # save feature name list
     features_json = {'features':df.columns.tolist()}
-    to_json(features_json,'../configs/000_all_features.json')
+    to_json(features_json,'../configs/103_all_features_14days.json')
 
     # LINE notify
     line_notify('{} done.'.format(sys.argv[0]))

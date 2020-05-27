@@ -6,7 +6,7 @@ import pandas as pd
 import sys
 import warnings
 
-from utils import save2pkl, line_notify
+from utils import save2pkl, line_notify, reduce_mem_usage
 
 #===============================================================================
 # preprocess sell prices
@@ -43,6 +43,9 @@ def main(is_eval=False):
 
     # momentum
     df['price_momentum'] = df['sell_price']/df.groupby(['store_id','item_id'])['sell_price'].transform(lambda x: x.shift(1))
+
+    # reduce memory usage
+    df = reduce_mem_usage(df)
 
     # save pkl
     save2pkl('../feats/sell_prices.pkl', df)

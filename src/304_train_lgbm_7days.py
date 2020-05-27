@@ -21,7 +21,7 @@ from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
 from utils import custom_asymmetric_train, custom_asymmetric_valid
 
 #==============================================================================
-# Train LightGBM with Simple Hold Out
+# Train LightGBM with 7days lag
 #==============================================================================
 
 warnings.filterwarnings('ignore')
@@ -64,8 +64,8 @@ def train_lightgbm(train_df,test_df,debug=False):
 
     # params optimized by optuna
     params ={
-           'device' : 'gpu',
-           'gpu_use_dp':True,
+            'device' : 'gpu',
+            'gpu_use_dp':True,
             'task': 'train',
             'boosting': 'gbdt',
             'learning_rate': 0.1,
@@ -96,7 +96,7 @@ def train_lightgbm(train_df,test_df,debug=False):
                     )
 
     # save model
-    reg.save_model('../output/lgbm_all_data.txt')
+    reg.save_model('../output/lgbm_7days.txt')
 
     # save predictions
     oof_preds += reg.predict(train_df[feats], num_iteration=reg.best_iteration)
@@ -118,8 +118,8 @@ def train_lightgbm(train_df,test_df,debug=False):
 
     # display importances
     display_importances(feature_importance_df,
-                        '../imp/lgbm_importances_holdout.png',
-                        '../imp/feature_importance_lgbm_holdout.csv')
+                        '../imp/lgbm_importances_7days.png',
+                        '../imp/feature_importance_lgbm_7days.csv')
 
     if not debug:
         # save out of fold prediction
@@ -150,13 +150,10 @@ def train_lightgbm(train_df,test_df,debug=False):
         # save csv
         preds.to_csv(submission_file_name, index=False)
 
-        # submission by API
-        submit(submission_file_name, comment='model202 cv: %.6f' % full_rmse)
-
 def main(debug=False):
     with timer("Load Datasets"):
         # load feathers
-        files = sorted(glob('../feats/*.feather'))
+        files = sorted(glob('../feats/f104_*.feather'))
         df = pd.concat([pd.read_feather(f) for f in tqdm(files, mininterval=60)], axis=1)
 
         # use selected features
@@ -182,8 +179,8 @@ def main(debug=False):
         train_lightgbm(train_df, test_df, debug=debug)
 
 if __name__ == "__main__":
-    submission_file_name = "../output/submission_lgbm.csv"
-    oof_file_name = "../output/oof_lgbm_holdout.csv"
-    configs = json.load(open('../configs/202_lgbm_all_data.json'))
+    submission_file_name = "../output/submission_lgbm_7days.csv"
+    oof_file_name = "../output/oof_lgbm_7days.csv"
+    configs = json.load(open('../configs/304_train_7days.json'))
     with timer("Full model run"):
         main(debug=False)
