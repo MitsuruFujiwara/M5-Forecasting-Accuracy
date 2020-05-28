@@ -62,21 +62,23 @@ def train_lightgbm(train_df,test_df,debug=False):
                             label=train_df['demand'],
                             free_raw_data=False)
 
-    # params optimized by optuna
+    # https://www.kaggle.com/kyakovlev/m5-three-shades-of-dark-darker-magic
     params ={
-            'device' : 'gpu',
-#            'gpu_use_dp':True,
+#            'device' : 'gpu',
+#           'gpu_use_dp':True,
             'task': 'train',
             'boosting': 'gbdt',
+            'objective': 'tweedie',
+            'metric': 'rmse',
             'learning_rate': 0.1,
-            'bagging_fraction': 0.85,
-            'bagging_freq': 1,
-            'colsample_bytree': 0.85,
-            'colsample_bynode': 0.85,
-            'min_data_per_leaf': 25,
-            'num_leaves': 200,
-            'lambda_l1': 0.5,
-            'lambda_l2': 0.5,
+            'tweedie_variance_power': 1.1,
+            'subsample': 0.5,
+            'subsample_freq': 1,
+            'num_leaves': 2**11-1,
+            'min_data_in_leaf': 2**12-1,
+            'feature_fraction': 0.5,
+            'max_bin': 100,
+            'boost_from_average': False,
             'verbose': -1,
             'seed':326,
             'bagging_seed':326,
@@ -89,10 +91,8 @@ def train_lightgbm(train_df,test_df,debug=False):
                     params,
                     lgb_train,
                     valid_sets=[lgb_train],
-                    verbose_eval=100,
+                    verbose_eval=10,
                     num_boost_round=configs['num_boost_round'],
-                    fobj = custom_asymmetric_train,
-                    feval = custom_asymmetric_valid,
                     )
 
     # save model

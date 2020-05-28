@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils import CustomTimeSeriesSplitter, custom_asymmetric_train, custom_asymmetric_valid
+from utils import CustomTimeSeriesSplitter
 
 #==============================================================================
 # Train LightGBM with custom cv (14days lag)
@@ -80,20 +80,23 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                                label=valid_y,
                                free_raw_data=False)
 
+        # https://www.kaggle.com/kyakovlev/m5-three-shades-of-dark-darker-magic
         params ={
-                'device' : 'gpu',
+#                'device' : 'gpu',
 #                'gpu_use_dp':True,
                 'task': 'train',
                 'boosting': 'gbdt',
+                'objective': 'tweedie',
+                'metric': 'rmse',
                 'learning_rate': 0.1,
-                'bagging_fraction': 0.85,
-                'bagging_freq': 1,
-                'colsample_bytree': 0.85,
-                'colsample_bynode': 0.85,
-                'min_data_per_leaf': 25,
-                'num_leaves': 200,
-                'lambda_l1': 0.5,
-                'lambda_l2': 0.5,
+                'tweedie_variance_power': 1.1,
+                'subsample': 0.5,
+                'subsample_freq': 1,
+                'num_leaves': 2**11-1,
+                'min_data_in_leaf': 2**12-1,
+                'feature_fraction': 0.5,
+                'max_bin': 100,
+                'boost_from_average': False,
                 'verbose': -1,
                 'seed':326,
                 'bagging_seed':326,
@@ -108,10 +111,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                         valid_sets=[lgb_train, lgb_test],
                         valid_names=['train', 'test'],
                         num_boost_round=10000,
-                        fobj = custom_asymmetric_train,
-                        feval = custom_asymmetric_valid,
                         early_stopping_rounds=200,
-                        verbose_eval=100
+                        verbose_eval=10
                         )
 
         # save model
