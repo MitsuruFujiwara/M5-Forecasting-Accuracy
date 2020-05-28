@@ -48,7 +48,7 @@ def main():
     # save csv
     sub.to_csv(submission_file_name, index=False)
 
-    # TODO: calc score by oof
+    # TODO: calc oof score
 
     # submission by API
     submit(submission_file_name, comment='model401 weekly prediction')
