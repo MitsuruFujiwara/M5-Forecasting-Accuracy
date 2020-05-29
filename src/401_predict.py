@@ -45,6 +45,10 @@ def main():
     sub = sub.merge(sub_21days[['id']+col_21days],on='id',how='left')
     sub = sub.merge(sub_28days[['id']+col_28days],on='id',how='left')
 
+    # postprocesssing
+    cols_f = [f'F{i}' for i in range(1,29)]
+    sub.loc[:,cols_f] = sub[cols_f].where(sub[cols_f]>0,0)
+
     # save csv
     sub.to_csv(submission_file_name, index=False)
 

@@ -3,6 +3,7 @@ cd ../feats
 rm *.feather
 rm *.pkl
 rm sales/*.pkl
+rm sales_diff/*.pkl
 cd ../src
 
 python 001_sales.py
