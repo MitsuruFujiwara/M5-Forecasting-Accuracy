@@ -184,6 +184,6 @@ def main(debug=False):
 
 if __name__ == "__main__":
     oof_file_name = "../output/oof_lgbm_cv_hobbies.csv"
-    configs = json.load(open('../configs/208_cv_hobbies.json'))
+    configs = json.load(open('../configs/209_cv_hobbies.json'))
     with timer("Full model run"):
         main(debug=False)
