@@ -100,7 +100,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                         lgb_train,
                         valid_sets=[lgb_train, lgb_test],
                         valid_names=['train', 'test'],
-                        num_boost_round=10000,
+                        num_boost_round=500,
                         fobj = custom_asymmetric_train,
                         feval = custom_asymmetric_valid,
                         early_stopping_rounds=200,
@@ -113,9 +113,6 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         # save predictions
         oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
         sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration) / folds.n_splits
-
-        # save best iteration
-        avg_best_iteration += reg.best_iteration / folds.n_splits
 
         # save feature importances
         fold_importance_df = pd.DataFrame()
