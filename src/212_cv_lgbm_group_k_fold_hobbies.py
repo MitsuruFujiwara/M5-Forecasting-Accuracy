@@ -19,7 +19,7 @@ from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
 from utils import custom_asymmetric_train, custom_asymmetric_valid
 
 #==============================================================================
-# Train LightGBM with group k-fold (foods)
+# Train LightGBM with group k-fold (hobbies)
 #==============================================================================
 
 warnings.filterwarnings('ignore')
@@ -108,7 +108,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                         )
 
         # save model
-        reg.save_model(f'../output/lgbm_group_k_fold_foods_{n_fold}.txt')
+        reg.save_model(f'../output/lgbm_group_k_fold_hobbies_{n_fold}.txt')
 
         # save predictions
         oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
@@ -127,8 +127,8 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 
     # display importances
     display_importances(feature_importance_df,
-                        '../imp/lgbm_importances_group_k_fold_foods.png',
-                        '../imp/feature_importance_lgbm_group_k_fold_foods.csv')
+                        '../imp/lgbm_importances_group_k_fold_hobbies.png',
+                        '../imp/feature_importance_lgbm_group_k_fold_hobbies.csv')
 
     # Full RMSE score and LINE Notify
     full_rmse = rmse(train_df['demand'], oof_preds)
@@ -154,7 +154,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 def main(debug=False):
     with timer("Load Datasets"):
         # load feathers
-        files = sorted(glob('../feats/f106_*.feather'))
+        files = sorted(glob('../feats/f108_*.feather'))
         df = pd.concat([pd.read_feather(f) for f in tqdm(files, mininterval=60)], axis=1)
 
         # use selected features
@@ -179,8 +179,8 @@ def main(debug=False):
         kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, debug=debug)
 
 if __name__ == "__main__":
-    submission_file_name = "../output/submission_lgbm_group_k_fold_foods.csv"
-    oof_file_name = "../output/oof_lgbm_group_k_fold_foods.csv"
-    configs = json.load(open('../configs/210_cv_group_k_fold_foods.json'))
+    submission_file_name = "../output/submission_lgbm_group_k_fold_hobbies.csv"
+    oof_file_name = "../output/oof_lgbm_group_k_fold_hobbies.csv"
+    configs = json.load(open('../configs/211_cv_group_k_fold_hobbies.json'))
     with timer("Full model run"):
         main(debug=False)
