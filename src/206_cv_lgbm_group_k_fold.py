@@ -131,7 +131,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                         '../imp/feature_importance_lgbm_group_k_fold.csv')
 
     # Full RMSE score and LINE Notify
-    full_rmse = rmse(train_df['demand'][valid_idxs], oof_preds[valid_idxs])
+    full_rmse = rmse(train_df['demand'], oof_preds)
     line_notify('Full RMSE score %.6f' % full_rmse)
 
     if not debug:
