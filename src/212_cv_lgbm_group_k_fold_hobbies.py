@@ -104,7 +104,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                         fobj = custom_asymmetric_train,
                         feval = custom_asymmetric_valid,
                         early_stopping_rounds=200,
-                        verbose_eval=10
+                        verbose_eval=100
                         )
 
         # save model
@@ -181,6 +181,6 @@ def main(debug=False):
 if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm_group_k_fold_hobbies.csv"
     oof_file_name = "../output/oof_lgbm_group_k_fold_hobbies.csv"
-    configs = json.load(open('../configs/211_cv_group_k_fold_hobbies.json'))
+    configs = json.load(open('../configs/212_cv_group_k_fold_hobbies.json'))
     with timer("Full model run"):
         main(debug=False)

@@ -104,7 +104,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                         fobj = custom_asymmetric_train,
                         feval = custom_asymmetric_valid,
                         early_stopping_rounds=200,
-                        verbose_eval=10
+                        verbose_eval=100
                         )
 
         # save model
