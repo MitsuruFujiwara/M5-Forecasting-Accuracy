@@ -15,6 +15,7 @@
         "wday",
         "month",
         "year",
+        "moon",
         "event_name_1",
         "event_type_1",
         "event_name_2",
@@ -88,5 +89,6 @@
         "price_momentum_m",
         "price_momentum_y"
     ],
-    "num_boost_round": 543
+    "num_boost_round": 789,
+    "rmse": 2.272613275029862
 }
