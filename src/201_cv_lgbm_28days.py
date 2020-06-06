@@ -191,4 +191,4 @@ if __name__ == "__main__":
     oof_file_name = "../output/oof_lgbm_cv_28days.csv"
     configs = json.load(open('../configs/201_cv_28days.json'))
     with timer("Full model run"):
-        main(is_eval=False)
+        main(is_eval=True)
