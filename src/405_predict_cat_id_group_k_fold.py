@@ -25,26 +25,35 @@ def main():
     sub_household = pd.read_csv('../output/submission_lgbm_group_k_fold_household.csv')
     sub_hobbies = pd.read_csv('../output/submission_lgbm_group_k_fold_hobbies.csv')
 
+    # load oof files
+    oof_foods = pd.read_csv('../output/oof_lgbm_group_k_fold_foods.csv')
+    oof_household = pd.read_csv('../output/oof_lgbm_group_k_fold_household.csv')
+    oof_hobbies = pd.read_csv('../output/oof_lgbm_group_k_fold_hobbies.csv')
+
     # merge
     sub = sub_foods.append(sub_household)
     sub = sub.append(sub_hobbies)
 
-    del sub_foods, sub_household, sub_hobbies
+    oof = oof_foods.append(oof_household)
+    oof = oof.append(oof_hobbies)
+
+    del sub_foods, sub_household, sub_hobbies, oof_foods, oof_household, oof_hobbies
     gc.collect()
 
     # reshape
     sub = sub.pivot(index='id', columns='d', values='demand').reset_index()
+    oof = oof.pivot(index='id', columns='d', values='demand').reset_index()
 
     # split test1 / test2
-    sub1 = sub[['id']+COLS_TEST1]
+    sub1 = oof[['id']+COLS_TEST1]
     sub2 = sub[['id']+COLS_TEST2]
 
     # change column names
     sub1.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
     sub2.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
 
-    # replace test2 id
-    sub2['id']= sub2['id'].str.replace('_validation','_evaluation')
+    # replace test1 id
+    sub1['id']= sub1['id'].str.replace('_evaluation','_validation')
 
     # merge
     sub = sub1.append(sub2)

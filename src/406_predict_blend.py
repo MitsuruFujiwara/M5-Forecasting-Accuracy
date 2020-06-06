@@ -38,7 +38,7 @@ def main():
     sub.to_csv(submission_file_name, index=False)
 
     # submission by API
-    submit(submission_file_name, comment='model405 blending #66 & #68')
+    submit(submission_file_name, comment='model405 blending')
 
 if __name__ == '__main__':
     submission_file_name = "../output/submission_blend.csv"

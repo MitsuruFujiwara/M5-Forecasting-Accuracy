@@ -50,7 +50,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
     print("Starting LightGBM. Train shape: {}".format(train_df.shape))
 
     # Cross validation
-    folds = CustomTimeSeriesSplitter(end_train=1913)
+    folds = CustomTimeSeriesSplitter(end_train=1941)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])

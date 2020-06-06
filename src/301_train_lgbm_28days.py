@@ -80,7 +80,7 @@ def train_lightgbm(train_df,test_df):
             'seed':326,
             'bagging_seed':326,
             'drop_seed':326,
-            'num_threads':-1
+#            'num_threads':-1
             }
 
     # train model
@@ -140,8 +140,8 @@ def train_lightgbm(train_df,test_df):
     preds1.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
     preds2.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
 
-    # replace test2 id
-    preds2['id']= preds2['id'].str.replace('_validation','_evaluation')
+    # replace test1 id
+    preds1['id']= preds1['id'].str.replace('_evaluation','_validation')
 
     # merge
     preds = preds1.append(preds2)

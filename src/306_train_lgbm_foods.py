@@ -48,7 +48,7 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     plt.savefig(outputpath)
 
 # Train LightGBM
-def train_lightgbm(train_df,test_df,debug=False):
+def train_lightgbm(train_df,test_df):
     print("Starting LightGBM. Train shape: {}".format(train_df.shape))
 
     # Create arrays and dataframes to store results
@@ -120,24 +120,23 @@ def train_lightgbm(train_df,test_df,debug=False):
                         '../imp/lgbm_importances_foods.png',
                         '../imp/feature_importance_lgbm_foods.csv')
 
-    if not debug:
-        # save out of fold prediction
-        train_df.loc[:,'demand'] = oof_preds
-        train_df = train_df.reset_index()
-        train_df[['id', 'demand']].to_csv(oof_file_name, index=False)
+    # save out of fold prediction
+    train_df.loc[:,'demand'] = oof_preds
+    train_df = train_df.reset_index()
+    train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
 
-        # reshape prediction for submit
-        test_df.loc[:,'demand'] = sub_preds
-        test_df = test_df.reset_index()
-        preds = test_df[['id','d','demand']].reset_index()
-        
-        # save csv
-        preds.to_csv(submission_file_name, index=False)
+    # reshape prediction for submit
+    test_df.loc[:,'demand'] = sub_preds
+    test_df = test_df.reset_index()
+    preds = test_df[['id','d','demand']].reset_index()
+
+    # save csv
+    preds.to_csv(submission_file_name, index=False)
 
     # LINE notify
     line_notify('{} done.'.format(sys.argv[0]))
 
-def main(debug=False):
+def main(is_eval=False):
     with timer("Load Datasets"):
         # load feathers
         files = sorted(glob('../feats/f106_*.feather'))
@@ -156,18 +155,22 @@ def main(debug=False):
         # 2016-05-23 ~ 2016-06-19 : d_1942 ~ d_1969 (private)
         #=======================================================================
 
-        train_df = df[df['date']<'2016-04-25']
-        test_df = df[df['date']>='2016-04-25']
+        if is_eval:
+            train_df = df[df['date']<'2016-05-23']
+            test_df = df[df['date']>='2016-05-23']
+        else:
+            train_df = df[df['date']<'2016-04-25']
+            test_df = df[df['date']>='2016-04-25']
 
         del df
         gc.collect()
 
     with timer("Run LightGBM with kfold"):
-        train_lightgbm(train_df, test_df, debug=debug)
+        train_lightgbm(train_df, test_df)
 
 if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm_foods.csv"
     oof_file_name = "../output/oof_lgbm_foods.csv"
     configs = json.load(open('../configs/306_train_foods.json'))
     with timer("Full model run"):
-        main(debug=False)
+        main(is_eval=True)

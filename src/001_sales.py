@@ -48,7 +48,9 @@ def main(is_eval=False):
     test2['id'] = test2['id'].str.replace('_evaluation','_validation')
 
     # merge
-    df = df.merge(test1,on='id',how='left')
+    if not is_eval:
+        df = df.merge(test1,on='id',how='left')
+        
     df = df.merge(test2,on='id',how='left')
 
     del test1, test2
