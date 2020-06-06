@@ -267,21 +267,27 @@ class WRMSSEEvaluator(object):
 
         self.group_ids = (
             'all_id',
-            'state_id',
-            'store_id',
             'cat_id',
+            'state_id',
             'dept_id',
+            'store_id',
+            'item_id',
             ['state_id', 'cat_id'],
             ['state_id', 'dept_id'],
             ['store_id', 'cat_id'],
             ['store_id', 'dept_id'],
-            'item_id',
             ['item_id', 'state_id'],
             ['item_id', 'store_id']
         )
 
         for i, group_id in enumerate(tqdm(self.group_ids)):
-            setattr(self, f'lv{i + 1}_train_df', train_df.groupby(group_id)[train_target_columns].sum())
+            train_y = train_df.groupby(group_id)[train_target_columns].sum()
+            scale = []
+            for _, row in train_y.iterrows():
+                series = row.values[np.argmax(row.values != 0):]
+                scale.append(((series[1:] - series[:-1]) ** 2).mean())
+            setattr(self, f'lv{i + 1}_scale', np.array(scale))
+            setattr(self, f'lv{i + 1}_train_df', train_y)
             setattr(self, f'lv{i + 1}_valid_df', valid_df.groupby(group_id)[valid_target_columns].sum())
 
             lv_weight = weight_df.groupby(group_id)[weight_columns].sum().sum(axis=1)
@@ -301,10 +307,9 @@ class WRMSSEEvaluator(object):
         return weight_df
 
     def rmsse(self, valid_preds: pd.DataFrame, lv: int) -> pd.Series:
-        train_y = getattr(self, f'lv{lv}_train_df')
         valid_y = getattr(self, f'lv{lv}_valid_df')
         score = ((valid_y - valid_preds) ** 2).mean(axis=1)
-        scale = ((train_y.iloc[:, 1:].values - train_y.iloc[:, :-1].values) ** 2).mean(axis=1)
+        scale = getattr(self, f'lv{lv}_scale')
         return (score / scale).map(np.sqrt)
 
     def score(self, valid_preds: Union[pd.DataFrame, np.ndarray]) -> float:
@@ -315,11 +320,13 @@ class WRMSSEEvaluator(object):
 
         valid_preds = pd.concat([self.valid_df[self.id_columns], valid_preds], axis=1, sort=False)
 
+        group_ids = []
         all_scores = []
         for i, group_id in enumerate(self.group_ids):
             lv_scores = self.rmsse(valid_preds.groupby(group_id)[self.valid_target_columns].sum(), i + 1)
             weight = getattr(self, f'lv{i + 1}_weight')
             lv_scores = pd.concat([weight, lv_scores], axis=1, sort=False).prod(axis=1)
+            group_ids.append(group_id)
             all_scores.append(lv_scores.sum())
 
-        return np.mean(all_scores)
+        return group_ids, all_scores
