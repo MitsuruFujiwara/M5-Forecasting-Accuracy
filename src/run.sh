@@ -43,4 +43,4 @@ python 308_train_lgbm_hobbies.py
 #python 401_predict.py
 python 404_predict_cat_id.py
 python 405_predict_cat_id_group_k_fold.py
-python 406_predict_blend.py
+python 501_blend.py

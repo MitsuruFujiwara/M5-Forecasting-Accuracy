@@ -7,6 +7,7 @@ import pandas as pd
 import warnings
 
 from glob import glob
+from sklearn.linear_model import Ridge
 from tqdm import tqdm
 
 from utils import submit
@@ -14,7 +15,7 @@ from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2
 from utils_lag import make_lags
 
 #==============================================================================
-# weekly prediction
+# blending
 #==============================================================================
 
 warnings.filterwarnings('ignore')
@@ -23,6 +24,8 @@ def main():
     # load submission files
     sub1 = pd.read_csv("../output/submission_cat_id.csv",index_col=0) # 0.54652
     sub2 = pd.read_csv("../output/submission_lgbm_group_k_fold.csv",index_col=0) # 0.54174
+
+    # TODO: calc weights by ridge regression
 
     # averaging
     sub = 0.5*sub1 + 0.5*sub2
