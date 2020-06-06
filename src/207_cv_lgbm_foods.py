@@ -150,6 +150,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
 
     # save number of best iteration
     configs['num_boost_round'] = int(avg_best_iteration)
+    configs['rmse'] = full_rmse
     to_json(configs, '../configs/306_train_foods.json')
 
     # LINE notify
