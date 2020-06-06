@@ -46,7 +46,7 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     plt.savefig(outputpath)
 
 # LightGBM GBDT with Group KFold
-def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
+def kfold_lightgbm(train_df, test_df, num_folds):
     print("Starting LightGBM. Train shape: {}".format(train_df.shape))
 
     # Cross validation
@@ -78,7 +78,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 #                'gpu_use_dp':True,
                 'task': 'train',
                 'boosting': 'gbdt',
-                'learning_rate': 0.3,
+                'learning_rate': 0.1,
                 'bagging_fraction': 0.85,
                 'bagging_freq': 1,
                 'colsample_bytree': 0.85,
@@ -134,24 +134,23 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     full_rmse = rmse(train_df['demand'], oof_preds)
     line_notify('Full RMSE score %.6f' % full_rmse)
 
-    if not debug:
-        # save out of fold prediction
-        train_df.loc[:,'demand'] = oof_preds
-        train_df = train_df.reset_index()
-        train_df[['id', 'demand']].to_csv(oof_file_name, index=False)
+    # save out of fold prediction
+    train_df.loc[:,'demand'] = oof_preds
+    train_df = train_df.reset_index()
+    train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
 
-        # reshape prediction for submit
-        test_df.loc[:,'demand'] = sub_preds
-        test_df = test_df.reset_index()
-        preds = test_df[['id','d','demand']].reset_index()
+    # reshape prediction for submit
+    test_df.loc[:,'demand'] = sub_preds
+    test_df = test_df.reset_index()
+    preds = test_df[['id','d','demand']].reset_index()
 
-        # save csv
-        preds.to_csv(submission_file_name, index=False)
+    # save csv
+    preds.to_csv(submission_file_name, index=False)
 
     # LINE notify
     line_notify('{} done.'.format(sys.argv[0]))
 
-def main(debug=False):
+def main(is_eval=False):
     with timer("Load Datasets"):
         # load feathers
         files = sorted(glob('../feats/f108_*.feather'))
@@ -169,18 +168,22 @@ def main(debug=False):
         # 2016-05-23 ~ 2016-06-19 : d_1942 ~ d_1969 (private)
         #=======================================================================
 
-        train_df = df[df['date']<'2016-04-25']
-        test_df = df[df['date']>='2016-04-25']
+        if is_eval:
+            train_df = df[df['date']<'2016-05-23']
+            test_df = df[df['date']>='2016-05-23']
+        else:
+            train_df = df[df['date']<'2016-04-25']
+            test_df = df[df['date']>='2016-04-25']
 
         del df
         gc.collect()
 
     with timer("Run LightGBM with kfold"):
-        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, debug=debug)
+        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS)
 
 if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm_group_k_fold_hobbies.csv"
     oof_file_name = "../output/oof_lgbm_group_k_fold_hobbies.csv"
     configs = json.load(open('../configs/212_cv_group_k_fold_hobbies.json'))
     with timer("Full model run"):
-        main(debug=False)
+        main(is_eval=True)

@@ -46,7 +46,7 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     plt.savefig(outputpath)
 
 # LightGBM GBDT with Group KFold
-def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
+def kfold_lightgbm(train_df, test_df, num_folds):
     print("Starting LightGBM. Train shape: {}".format(train_df.shape))
 
     # Cross validation
@@ -155,7 +155,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     # LINE notify
     line_notify('{} done. best iteration:{}'.format(sys.argv[0],int(avg_best_iteration)))
 
-def main(debug=False):
+def main(is_eval=False):
     with timer("Load Datasets"):
         # load feathers
         files = sorted(glob('../feats/f101_*.feather'))
@@ -173,17 +173,21 @@ def main(debug=False):
         # 2016-05-23 ~ 2016-06-19 : d_1942 ~ d_1969 (private)
         #=======================================================================
 
-        train_df = df[df['date']<'2016-04-25']
-        test_df = df[df['date']>='2016-04-25']
+        if is_eval:
+            train_df = df[df['date']<'2016-05-23']
+            test_df = df[df['date']>='2016-05-23']
+        else:
+            train_df = df[df['date']<'2016-04-25']
+            test_df = df[df['date']>='2016-04-25']
 
         del df
         gc.collect()
 
     with timer("Run LightGBM with kfold"):
-        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, debug=debug)
+        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS)
 
 if __name__ == "__main__":
     oof_file_name = "../output/oof_lgbm_cv_28days.csv"
     configs = json.load(open('../configs/201_cv_28days.json'))
     with timer("Full model run"):
-        main(debug=False)
+        main(is_eval=False)

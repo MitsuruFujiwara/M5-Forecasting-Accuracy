@@ -25,7 +25,7 @@ def main():
     sub2 = pd.read_csv("../output/submission_lgbm_group_k_fold.csv",index_col=0) # 0.54174
 
     # averaging
-    sub = 0.4*sub1 + 0.6*sub2
+    sub = 0.5*sub1 + 0.5*sub2
 
     # postprocesssing
     cols_f = [f'F{i}' for i in range(1,29)]

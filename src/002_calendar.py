@@ -2,11 +2,13 @@
 import feather
 import gc
 import holidays
+import math, decimal
 import numpy as np
 import pandas as pd
 import sys
 import warnings
 
+from datetime import datetime
 from math import ceil
 
 from utils import save2pkl, line_notify, reduce_mem_usage
@@ -16,6 +18,16 @@ from utils import save2pkl, line_notify, reduce_mem_usage
 #===============================================================================
 
 warnings.simplefilter(action='ignore')
+
+dec = decimal.Decimal
+
+# https://www.kaggle.com/c/m5-forecasting-accuracy/discussion/154776
+def get_moon_phase(d):  # 0=new, 4=full; 4 days/phase
+    diff = d - datetime(2001, 1, 1)
+    days = dec(diff.days) + (dec(diff.seconds) / dec(86400))
+    lunations = dec("0.20439731") + (days * dec("0.03386319269"))
+    phase_index = math.floor((lunations % dec(1) * dec(8)) + dec('0.5'))
+    return int(phase_index) % 8
 
 def main(is_eval=False):
     # load csv
@@ -71,6 +83,9 @@ def main(is_eval=False):
     # preprocess event_name_1
     # to datetime
     df['date'] = pd.to_datetime(df['date'])
+
+    # Moon Phase
+    df['moon'] = df['date'].apply(get_moon_phase)
 
     # add ramadan end dates
     ramadan_end_dates = ['2011-8-29','2012-8-18','2013-8-7','2014-7-27','2015-7-16','2016-7-5']

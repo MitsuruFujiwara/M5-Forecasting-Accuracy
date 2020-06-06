@@ -90,4 +90,4 @@ def main(is_eval=False):
     line_notify('{} done.'.format(sys.argv[0]))
 
 if __name__ == '__main__':
-    main(is_eval=False)
+    main(is_eval=True)
