@@ -4,12 +4,13 @@ import json
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
+import sys
 import warnings
 
 from glob import glob
 from tqdm import tqdm
 
-from utils import submit, WRMSSEEvaluator
+from utils import submit, WRMSSEEvaluator, line_notify
 from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2
 from utils_lag import make_lags
 
@@ -77,6 +78,9 @@ def main():
 
     # submission by API
     submit(submission_file_name, comment='model401 cv: %.6f' % score)
+
+    # LINE notify
+    line_notify('{} done. WRMSSE:{}'.format(sys.argv[0],score))
 
 if __name__ == '__main__':
     submission_file_name = '../output/submission_lgbm_28days.csv'
