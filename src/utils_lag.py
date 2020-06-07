@@ -40,8 +40,8 @@ def make_lags_ewm(df,days=28):
         df[f'demand_lag_{days}_{i}'] = df_grouped.shift(days+i)
 
     print('Add rolling aggs...')
-    for i, alpha in tqdm(zip([7,14,21,28],[0.1,0.075,0.05,0.025])):
-        df[f'demand_rolling_mean_{days}_{i}'] = df_grouped.transform(lambda x: x.shift(days).rolling(i).ewm(alpha=alpha))
+    for i in tqdm([7,14,21,28]):
+        df[f'demand_rolling_mean_{days}_{i}'] = df_grouped.transform(lambda x: x.shift(days).ewm(span=i).mean())
         df[f'demand_rolling_std_{days}_{i}'] = df_grouped.transform(lambda x: x.shift(days).rolling(i).std())
         df[f'demand_rolling_max_{days}_{i}'] = df_grouped.transform(lambda x: x.shift(days).rolling(i).max())
         df[f'demand_rolling_min_{days}_{i}'] = df_grouped.transform(lambda x: x.shift(days).rolling(i).min())

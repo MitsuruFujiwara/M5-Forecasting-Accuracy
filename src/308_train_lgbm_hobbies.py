@@ -65,22 +65,21 @@ def train_lightgbm(train_df,test_df):
     params ={
 #            'device' : 'gpu',
 #            'gpu_use_dp':True,
-            'task': 'train',
             'boosting': 'gbdt',
-            'learning_rate': 0.1,
-            'bagging_fraction': 0.85,
-            'bagging_freq': 1,
-            'colsample_bytree': 0.85,
-            'colsample_bynode': 0.85,
-            'min_data_per_leaf': 25,
-            'num_leaves': 200,
-            'lambda_l1': 0.5,
-            'lambda_l2': 0.5,
+            'metric': ['rmse'],
+            'objective':'tweedie',
+            'learning_rate': 0.05,
+            'tweedie_variance_power':1.1,
+            'subsample': 0.5,
+            'subsample_freq': 1,
+            'num_leaves': 2**8-1,
+            'min_data_in_leaf': 2**8-1,
+            'feature_fraction': 0.8,
             'verbose': -1,
             'seed':326,
             'bagging_seed':326,
             'drop_seed':326,
-            'num_threads':-1
+#            'num_threads':-1
             }
 
     # train model
@@ -90,8 +89,6 @@ def train_lightgbm(train_df,test_df):
                     valid_sets=[lgb_train],
                     verbose_eval=10,
                     num_boost_round=configs['num_boost_round'],
-                    fobj = custom_asymmetric_train,
-                    feval = custom_asymmetric_valid,
                     )
 
     # save model
