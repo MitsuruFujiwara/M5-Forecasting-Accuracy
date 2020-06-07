@@ -17,6 +17,7 @@ from tqdm import tqdm
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
 from utils import CustomTimeSeriesSplitter, custom_asymmetric_train, custom_asymmetric_valid
+from utils_lag import target_encoding
 
 #==============================================================================
 # Train LightGBM with custom cv (28days lag)
@@ -63,10 +64,11 @@ def kfold_lightgbm(train_df, test_df, num_folds):
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df)):
+        # TODO: target encoding
+
+        # split train/valid
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['demand'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
-
-        # TODO: target encoding
 
         # save validation indexes
         valid_idxs += list(valid_idx)
@@ -97,7 +99,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
                 'seed':326,
                 'bagging_seed':326,
                 'drop_seed':326,
-                'num_threads':-1
+#                'num_threads':-1
                 }
 
         # train model

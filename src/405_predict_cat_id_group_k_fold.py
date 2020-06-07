@@ -9,7 +9,7 @@ import warnings
 from glob import glob
 from tqdm import tqdm
 
-from utils import submit
+from utils import submit, WRMSSEEvaluator
 from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2
 from utils_lag import make_lags
 

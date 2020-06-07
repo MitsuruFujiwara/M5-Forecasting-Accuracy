@@ -79,7 +79,7 @@ def train_lightgbm(train_df,test_df):
             'seed':326,
             'bagging_seed':326,
             'drop_seed':326,
-            'num_threads':-1
+#            'num_threads':-1
             }
 
     # train model
@@ -88,8 +88,9 @@ def train_lightgbm(train_df,test_df):
                     lgb_train,
                     valid_sets=[lgb_train],
                     verbose_eval=10,
-                    num_boost_round=200,
+                    num_boost_round=configs['num_boost_round'],
                     )
+
     # save model
     reg.save_model('../output/lgbm_28days.txt')
 

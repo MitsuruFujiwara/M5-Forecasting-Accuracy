@@ -53,6 +53,16 @@ def make_lags_ewm(df,days=28):
 
     return df
 
-# TODO:target encoding
-def target_encoding(train_df,test_df):
-    return
+# TODO: # target encoding
+def target_encoding(train_x,valid_x,train_y):
+    # cols to encode
+    cols_id = ['item_id','cat_id','dept_id']
+    enc_cols = []
+    for c in cols_id:
+        df_grouped = train_df[[c,'demand']].groupby(c)['demand']
+
+        train_df[f'enc_{c}_mean'] = train_df[c].map(df_grouped)
+        test_df[f'enc_{c}_mean'] = test_df[c].map(df_grouped)
+        enc_cols.append(f'enc_{c}_mean')
+
+    return train_df, test_df, enc_cols
