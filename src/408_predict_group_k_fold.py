@@ -12,7 +12,6 @@ from tqdm import tqdm
 
 from utils import submit, line_notify
 from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2
-from utils_lag import make_lags
 from utils_score import calc_score_cv
 
 #==============================================================================
@@ -50,7 +49,7 @@ def main():
     print(f'scores: {scores}')
 
     # submission by API
-#    submit(submission_file_name, comment='model401 cv: %.6f' % score)
+    submit(submission_file_name, comment='model401 cv: %.6f' % score)
 
     # LINE notify
     line_notify('{} done. WRMSSE:{}'.format(sys.argv[0],round(score,6)))

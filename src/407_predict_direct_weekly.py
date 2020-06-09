@@ -9,9 +9,9 @@ import warnings
 from glob import glob
 from tqdm import tqdm
 
-from utils import submit, WRMSSEEvaluator
+from utils import submit, line_notify
 from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2
-from utils_lag import make_lags
+from utils_score import calc_score_cv
 
 #==============================================================================
 # weekly prediction
@@ -38,7 +38,43 @@ def main():
     oof_14days = oof_14days.pivot(index='id', columns='d', values='demand').reset_index()
     oof_7days  = oof_7days.pivot(index='id', columns='d', values='demand').reset_index()
 
-    # TODO: calc WRMSSE score
+    # validation columns
+    valid_col_28days_fold1 = [f'd_{i+1}' for i in range(1913+21,1913+28)]
+    valid_col_21days_fold1 = [f'd_{i+1}' for i in range(1913+14,1913+21)]
+    valid_col_14days_fold1 = [f'd_{i+1}' for i in range(1913+7,1913+14)]
+    valid_col_7days_fold1  = [f'd_{i+1}' for i in range(1913,1913+7)]
+
+    valid_col_28days_fold2 = [f'd_{i+1}' for i in range(1885+21,1885+28)]
+    valid_col_21days_fold2 = [f'd_{i+1}' for i in range(1885+14,1885+21)]
+    valid_col_14days_fold2 = [f'd_{i+1}' for i in range(1885+7,1885+14)]
+    valid_col_7days_fold2  = [f'd_{i+1}' for i in range(1885,1885+7)]
+
+    valid_col_28days_fold3 = [f'd_{i+1}' for i in range(1576+21,1576+28)]
+    valid_col_21days_fold3 = [f'd_{i+1}' for i in range(1576+14,1576+21)]
+    valid_col_14days_fold3 = [f'd_{i+1}' for i in range(1576+7,1576+14)]
+    valid_col_7days_fold3  = [f'd_{i+1}' for i in range(1576,1576+7)]
+
+    # merge oof files
+    oof = oof_28days[['id']+valid_col_28days_fold1].merge(oof_28days[['id']+valid_col_28days_fold2],on='id',how='left')
+    oof = oof.merge(oof_28days[['id']+valid_col_28days_fold3],on='id',how='left')
+
+    oof = oof.merge(oof_21days[['id']+valid_col_21days_fold1],on='id',how='left')
+    oof = oof.merge(oof_21days[['id']+valid_col_21days_fold2],on='id',how='left')
+    oof = oof.merge(oof_21days[['id']+valid_col_21days_fold3],on='id',how='left')
+
+    oof = oof.merge(oof_14days[['id']+valid_col_14days_fold1],on='id',how='left')
+    oof = oof.merge(oof_14days[['id']+valid_col_14days_fold2],on='id',how='left')
+    oof = oof.merge(oof_14days[['id']+valid_col_14days_fold3],on='id',how='left')
+
+    oof = oof.merge(oof_7days[['id']+valid_col_7days_fold1],on='id',how='left')
+    oof = oof.merge(oof_7days[['id']+valid_col_7days_fold2],on='id',how='left')
+    oof = oof.merge(oof_7days[['id']+valid_col_7days_fold3],on='id',how='left')
+
+    # calc out of fold WRMSSE score
+    print('calc oof cv scores...')
+    scores = calc_score_cv(oof)
+    score = np.mean(scores)
+    print(f'scores: {scores}')
 
     # split columns
     col_28days = [f'F{i+1}' for i in range(21,28)]
@@ -53,16 +89,21 @@ def main():
 
     # postprocesssing
     cols_f = [f'F{i}' for i in range(1,29)]
+    cols_d = [c for c in oof.columns if 'd_' in c]
     sub.loc[:,cols_f] = sub[cols_f].where(sub[cols_f]>0,0)
+    oof.loc[:,cols_d] = oof[cols_d].where(oof[cols_d]>0,0)
 
     # save csv
     sub.to_csv(submission_file_name, index=False)
-
-    # TODO: calc oof score
+    oof.to_csv(oof_file_name_pivot, index=False)
 
     # submission by API
-    submit(submission_file_name, comment='model401 weekly prediction')
+    submit(submission_file_name, comment='model407 cv: %.6f' % score)
+
+    # LINE notify
+    line_notify('{} done. WRMSSE:{}'.format(sys.argv[0],round(score,6)))
 
 if __name__ == '__main__':
     submission_file_name = "../output/submission_weekly.csv"
+    oof_file_name_pivot = '../output/oof_lgbm_direct_weekly_pivot.csv'
     main()
