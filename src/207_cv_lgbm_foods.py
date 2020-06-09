@@ -59,7 +59,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
     valid_idxs=[]
-    avg_best_iteration = 0 # average of best iteration
+    best_iterations = [] # average of best iteration
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df)):
@@ -119,7 +119,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
         sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration) / folds.n_splits
 
         # save best iteration
-        avg_best_iteration += reg.best_iteration / folds.n_splits
+        best_iterations.append(reg.best_iteration)
 
         # save feature importances
         fold_importance_df = pd.DataFrame()
@@ -146,12 +146,12 @@ def kfold_lightgbm(train_df, test_df, num_folds):
     train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
 
     # save number of best iteration
-    configs['num_boost_round'] = int(avg_best_iteration)
+    configs['num_boost_round'] = best_iterations
     configs['rmse'] = full_rmse
     to_json(configs, '../configs/306_train_foods.json')
 
     # LINE notify
-    line_notify('{} done. best iteration:{}'.format(sys.argv[0],int(avg_best_iteration)))
+    line_notify('{} done. best iterations:{}'.format(sys.argv[0],best_iterations))
 
 def main(is_eval=False):
     with timer("Load Datasets"):

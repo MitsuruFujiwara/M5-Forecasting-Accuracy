@@ -46,7 +46,7 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     plt.savefig(outputpath)
 
 # LightGBM GBDT with Group KFold
-def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
+def kfold_lightgbm(train_df, test_df, num_folds):
     print("Starting LightGBM. Train shape: {}".format(train_df.shape))
 
     # Cross validation
@@ -57,7 +57,7 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
-    group = train_df['week'].astype(str) + '_' + train_df['year'].astype(str)
+    group = train_df['month'].astype(str) + '_' + train_df['year'].astype(str)
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], groups=group)):
@@ -76,22 +76,21 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         params ={
 #                'device' : 'gpu',
 #                'gpu_use_dp':True,
-                'task': 'train',
                 'boosting': 'gbdt',
+                'metric': ['rmse'],
+                'objective':'tweedie',
                 'learning_rate': 0.3,
-                'bagging_fraction': 0.85,
-                'bagging_freq': 1,
-                'colsample_bytree': 0.85,
-                'colsample_bynode': 0.85,
-                'min_data_per_leaf': 25,
-                'num_leaves': 200,
-                'lambda_l1': 0.5,
-                'lambda_l2': 0.5,
+                'tweedie_variance_power':1.1,
+                'subsample': 0.5,
+                'subsample_freq': 1,
+                'num_leaves': 2**8-1,
+                'min_data_in_leaf': 2**8-1,
+                'feature_fraction': 0.8,
                 'verbose': -1,
                 'seed':326,
                 'bagging_seed':326,
                 'drop_seed':326,
-                'num_threads':-1
+#                'num_threads':-1
                 }
 
         # train model
@@ -101,14 +100,12 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                         valid_sets=[lgb_train, lgb_test],
                         valid_names=['train', 'test'],
                         num_boost_round=10000,
-                        fobj = custom_asymmetric_train,
-                        feval = custom_asymmetric_valid,
                         early_stopping_rounds=200,
-                        verbose_eval=10
+                        verbose_eval=100
                         )
 
         # save model
-        reg.save_model('../output/lgbm_group_k_fold_'+str(n_fold)+'.txt')
+        reg.save_model(f'../output/lgbm_group_k_fold_{n_fold}.txt')
 
         # save predictions
         oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
@@ -134,42 +131,23 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
     full_rmse = rmse(train_df['demand'], oof_preds)
     line_notify('Full RMSE score %.6f' % full_rmse)
 
-    if not debug:
-        # save out of fold prediction
-        train_df.loc[:,'demand'] = oof_preds
-        train_df = train_df.reset_index()
-        train_df[['id', 'demand']].to_csv(oof_file_name, index=False)
+    # save out of fold prediction
+    train_df.loc[:,'demand'] = oof_preds
+    train_df = train_df.reset_index()
+    train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
 
-        # reshape prediction for submit
-        test_df.loc[:,'demand'] = sub_preds
-        test_df = test_df.reset_index()
-        preds = test_df[['id','d','demand']].reset_index()
-        preds = preds.pivot(index='id', columns='d', values='demand').reset_index()
+    # reshape prediction for submit
+    test_df.loc[:,'demand'] = sub_preds
+    test_df = test_df.reset_index()
+    preds = test_df[['id','d','demand']].reset_index()
 
-        # split test1 / test2
-        preds1 = preds[['id']+COLS_TEST1]
-        preds2 = preds[['id']+COLS_TEST2]
-
-        # change column names
-        preds1.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
-        preds2.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
-
-        # replace test2 id
-        preds2['id']= preds2['id'].str.replace('_validation','_evaluation')
-
-        # merge
-        preds = preds1.append(preds2)
-
-        # save csv
-        preds.to_csv(submission_file_name, index=False)
-
-        # submission by API
-        submit(submission_file_name, comment='model206 cv: %.6f' % full_rmse)
+    # save csv
+    preds.to_csv(submission_file_name, index=False)
 
     # LINE notify
     line_notify('{} done.'.format(sys.argv[0]))
 
-def main(debug=False):
+def main(is_eval=False):
     with timer("Load Datasets"):
         # load feathers
         files = sorted(glob('../feats/f101_*.feather'))
@@ -187,14 +165,18 @@ def main(debug=False):
         # 2016-05-23 ~ 2016-06-19 : d_1942 ~ d_1969 (private)
         #=======================================================================
 
-        train_df = df[df['date']<'2016-04-25']
-        test_df = df[df['date']>='2016-04-25']
+        if is_eval:
+            train_df = df[df['date']<'2016-05-23']
+            test_df = df[df['date']>='2016-05-23']
+        else:
+            train_df = df[df['date']<'2016-04-25']
+            test_df = df[df['date']>='2016-04-25']
 
         del df
         gc.collect()
 
     with timer("Run LightGBM with kfold"):
-        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, debug=debug)
+        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS)
 
 if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm_group_k_fold.csv"

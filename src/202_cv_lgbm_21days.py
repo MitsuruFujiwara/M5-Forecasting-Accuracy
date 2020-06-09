@@ -17,6 +17,7 @@ from tqdm import tqdm
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
 from utils import CustomTimeSeriesSplitter, custom_asymmetric_train, custom_asymmetric_valid
+from utils_lag import target_encoding
 
 #==============================================================================
 # Train LightGBM with custom cv (21days lag)
@@ -46,11 +47,11 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     plt.savefig(outputpath)
 
 # LightGBM GBDT with Group KFold
-def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
+def kfold_lightgbm(train_df, test_df, num_folds):
     print("Starting LightGBM. Train shape: {}".format(train_df.shape))
 
     # Cross validation
-    folds = CustomTimeSeriesSplitter(end_train=1913)
+    folds = CustomTimeSeriesSplitter(end_train=1941)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -63,10 +64,11 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df)):
+        # TODO: target encoding
+
+        # split train/valid
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['demand'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
-
-        # TODO: target encoding
 
         # save validation indexes
         valid_idxs += list(valid_idx)
@@ -83,22 +85,21 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
         params ={
 #                'device' : 'gpu',
 #                'gpu_use_dp':True,
-                'task': 'train',
                 'boosting': 'gbdt',
-                'learning_rate': 0.1,
-                'bagging_fraction': 0.85,
-                'bagging_freq': 1,
-                'colsample_bytree': 0.85,
-                'colsample_bynode': 0.85,
-                'min_data_per_leaf': 25,
-                'num_leaves': 200,
-                'lambda_l1': 0.5,
-                'lambda_l2': 0.5,
+                'metric': ['rmse'],
+                'objective':'tweedie',
+                'learning_rate': 0.05,
+                'tweedie_variance_power':1.1,
+                'subsample': 0.5,
+                'subsample_freq': 1,
+                'num_leaves': 2**8-1,
+                'min_data_in_leaf': 2**8-1,
+                'feature_fraction': 0.8,
                 'verbose': -1,
                 'seed':326,
                 'bagging_seed':326,
                 'drop_seed':326,
-                'num_threads':-1
+#                'num_threads':-1
                 }
 
         # train model
@@ -108,8 +109,6 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
                         valid_sets=[lgb_train, lgb_test],
                         valid_names=['train', 'test'],
                         num_boost_round=10000,
-                        fobj = custom_asymmetric_train,
-                        feval = custom_asymmetric_valid,
                         early_stopping_rounds=200,
                         verbose_eval=10
                         )
@@ -150,12 +149,13 @@ def kfold_lightgbm(train_df, test_df, num_folds, debug=False):
 
     # save number of best iteration
     configs['num_boost_round'] = int(avg_best_iteration)
+    configs['rmse'] = full_rmse
     to_json(configs, '../configs/302_train_21days.json')
 
     # LINE notify
     line_notify('{} done. best iteration:{}'.format(sys.argv[0],int(avg_best_iteration)))
 
-def main(debug=False):
+def main(is_eval=False):
     with timer("Load Datasets"):
         # load feathers
         files = sorted(glob('../feats/f102_*.feather'))
@@ -173,17 +173,21 @@ def main(debug=False):
         # 2016-05-23 ~ 2016-06-19 : d_1942 ~ d_1969 (private)
         #=======================================================================
 
-        train_df = df[df['date']<'2016-04-25']
-        test_df = df[df['date']>='2016-04-25']
+        if is_eval:
+            train_df = df[df['date']<'2016-05-23']
+            test_df = df[df['date']>='2016-05-23']
+        else:
+            train_df = df[df['date']<'2016-04-25']
+            test_df = df[df['date']>='2016-04-25']
 
         del df
         gc.collect()
 
     with timer("Run LightGBM with kfold"):
-        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS, debug=debug)
+        kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS)
 
 if __name__ == "__main__":
     oof_file_name = "../output/oof_lgbm_cv_21days.csv"
     configs = json.load(open('../configs/202_cv_21days.json'))
     with timer("Full model run"):
-        main(debug=False)
+        main(is_eval=True)

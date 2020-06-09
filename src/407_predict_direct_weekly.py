@@ -26,13 +26,17 @@ def main():
     sub_14days = pd.read_csv("../output/submission_lgbm_14days.csv")
     sub_7days  = pd.read_csv("../output/submission_lgbm_7days.csv")
 
-    """
     # load out of fold files
     oof_28days = pd.read_csv("../output/oof_lgbm_28days.csv")
     oof_21days = pd.read_csv("../output/oof_lgbm_21days.csv")
     oof_14days = pd.read_csv("../output/oof_lgbm_14days.csv")
     oof_7days  = pd.read_csv("../output/oof_lgbm_7days.csv")
-    """
+
+    # to pivot
+    oof_28days = oof_28days.pivot(index='id', columns='d', values='demand').reset_index()
+    oof_21days = oof_21days.pivot(index='id', columns='d', values='demand').reset_index()
+    oof_14days = oof_14days.pivot(index='id', columns='d', values='demand').reset_index()
+    oof_7days  = oof_7days.pivot(index='id', columns='d', values='demand').reset_index()        
 
     # split columns
     col_28days = [f'F{i+1}' for i in range(21,28)]

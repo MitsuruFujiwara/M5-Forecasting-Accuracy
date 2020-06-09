@@ -57,7 +57,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
-    group = train_df['week'].astype(str) + '_' + train_df['year'].astype(str)
+    group = train_df['month'].astype(str) + '_' + train_df['year'].astype(str)
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], groups=group)):

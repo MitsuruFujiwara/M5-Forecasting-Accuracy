@@ -19,27 +19,6 @@ from utils_lag import make_lags
 
 warnings.filterwarnings('ignore')
 
-def netflix(es, ps, e0, la=.0001):
-    """Combine predictions with the optimal weights to minimize RMSE.
-    Args:
-        es (list of float): RMSEs of predictions
-        ps (list of np.array): predictions
-        e0 (float): RMSE of all zero prediction
-        la (float): lambda as in the ridge regression
-    Returns:
-        (tuple):
-            - (np.array): ensemble predictions
-            - (np.array): weights for input predictions
-    """
-    m = len(es)
-    n = len(ps[0])
-
-    X = np.stack(ps).T
-    pTy = .5 * (n * e0**2 + (X**2).sum(axis=0) - n * np.array(es)**2)
-
-    w = np.linalg.pinv(X.T.dot(X) + la * n * np.eye(m)).dot(pTy)
-    return X.dot(w), w
-
 def main():
     # load submission files
     sub1 = pd.read_csv("../output/submission_cat_id.csv",index_col=0) # 0.54652

@@ -88,7 +88,7 @@ def train_lightgbm(train_df,test_df):
                     lgb_train,
                     valid_sets=[lgb_train],
                     verbose_eval=10,
-                    num_boost_round=configs['num_boost_round'],
+                    num_boost_round=max(configs['num_boost_round']),
                     )
 
     # save model

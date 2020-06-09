@@ -48,7 +48,7 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     plt.savefig(outputpath)
 
 # Train LightGBM
-def train_lightgbm(train_df,test_df,debug=False):
+def train_lightgbm(train_df,test_df):
     print("Starting LightGBM. Train shape: {}".format(train_df.shape))
 
     # Create arrays and dataframes to store results
@@ -65,22 +65,21 @@ def train_lightgbm(train_df,test_df,debug=False):
     params ={
 #            'device' : 'gpu',
 #            'gpu_use_dp':True,
-            'task': 'train',
             'boosting': 'gbdt',
-            'learning_rate': 0.1,
-            'bagging_fraction': 0.85,
-            'bagging_freq': 1,
-            'colsample_bytree': 0.85,
-            'colsample_bynode': 0.85,
-            'min_data_per_leaf': 25,
-            'num_leaves': 200,
-            'lambda_l1': 0.5,
-            'lambda_l2': 0.5,
+            'metric': ['rmse'],
+            'objective':'tweedie',
+            'learning_rate': 0.05,
+            'tweedie_variance_power':1.1,
+            'subsample': 0.5,
+            'subsample_freq': 1,
+            'num_leaves': 2**8-1,
+            'min_data_in_leaf': 2**8-1,
+            'feature_fraction': 0.8,
             'verbose': -1,
             'seed':326,
             'bagging_seed':326,
             'drop_seed':326,
-            'num_threads':-1
+#            'num_threads':-1
             }
 
     # train model
@@ -90,8 +89,6 @@ def train_lightgbm(train_df,test_df,debug=False):
                     valid_sets=[lgb_train],
                     verbose_eval=10,
                     num_boost_round=configs['num_boost_round'],
-                    fobj = custom_asymmetric_train,
-                    feval = custom_asymmetric_valid,
                     )
 
     # save model
@@ -120,39 +117,39 @@ def train_lightgbm(train_df,test_df,debug=False):
                         '../imp/lgbm_importances_14days.png',
                         '../imp/feature_importance_lgbm_14days.csv')
 
-    if not debug:
-        # save out of fold prediction
-        train_df.loc[:,'demand'] = oof_preds
-        train_df = train_df.reset_index()
-        train_df[['id', 'demand']].to_csv(oof_file_name, index=False)
+    # save out of fold prediction
+    train_df.loc[:,'demand'] = oof_preds
+    train_df = train_df.reset_index()
+    train_df[['id','d','demand']].to_csv(oof_file_name, index=False)
+    preds1 = train_df[['id','d','demand']].pivot(index='id', columns='d', values='demand').reset_index()
 
-        # reshape prediction for submit
-        test_df.loc[:,'demand'] = sub_preds
-        test_df = test_df.reset_index()
-        preds = test_df[['id','d','demand']].reset_index()
-        preds = preds.pivot(index='id', columns='d', values='demand').reset_index()
+    # reshape prediction for submit
+    test_df.loc[:,'demand'] = sub_preds
+    test_df = test_df.reset_index()
+    preds2 = test_df[['id','d','demand']].reset_index()
+    preds2 = preds2.pivot(index='id', columns='d', values='demand').reset_index()
 
-        # split test1 / test2
-        preds1 = preds[['id']+COLS_TEST1]
-        preds2 = preds[['id']+COLS_TEST2]
+    # split test1 / test2
+    preds1 = preds1[['id']+COLS_TEST1]
+    preds2 = preds2[['id']+COLS_TEST2]
 
-        # change column names
-        preds1.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
-        preds2.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
+    # change column names
+    preds1.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
+    preds2.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
 
-        # replace test2 id
-        preds2['id']= preds2['id'].str.replace('_validation','_evaluation')
+    # replace test1 id
+    preds1['id']= preds1['id'].str.replace('_evaluation','_validation')
 
-        # merge
-        preds = preds1.append(preds2)
+    # merge
+    preds = preds1.append(preds2)
 
-        # save csv
-        preds.to_csv(submission_file_name, index=False)
+    # save csv
+    preds.to_csv(submission_file_name, index=False)
 
     # LINE notify
     line_notify('{} done.'.format(sys.argv[0]))
 
-def main(debug=False):
+def main(is_eval=False):
     with timer("Load Datasets"):
         # load feathers
         files = sorted(glob('../feats/f103_*.feather'))
@@ -171,18 +168,22 @@ def main(debug=False):
         # 2016-05-23 ~ 2016-06-19 : d_1942 ~ d_1969 (private)
         #=======================================================================
 
-        train_df = df[df['date']<'2016-04-25']
-        test_df = df[df['date']>='2016-04-25']
+        if is_eval:
+            train_df = df[df['date']<'2016-05-23']
+            test_df = df[df['date']>='2016-05-23']
+        else:
+            train_df = df[df['date']<'2016-04-25']
+            test_df = df[df['date']>='2016-04-25']
 
         del df
         gc.collect()
 
     with timer("Run LightGBM with kfold"):
-        train_lightgbm(train_df, test_df, debug=debug)
+        train_lightgbm(train_df, test_df)
 
 if __name__ == "__main__":
     submission_file_name = "../output/submission_lgbm_14days.csv"
     oof_file_name = "../output/oof_lgbm_14days.csv"
     configs = json.load(open('../configs/303_train_14days.json'))
     with timer("Full model run"):
-        main(debug=False)
+        main(is_eval=True)

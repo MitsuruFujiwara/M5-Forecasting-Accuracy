@@ -17,7 +17,7 @@ demand_rolling_max_28_28,29.70118164435499,6
 demand_rolling_max_28_7,27.787441672414616,6
 demand_rolling_mean_28_14,42.26118767953688,6
 demand_rolling_mean_28_21,41.32318406809282,6
-demand_rolling_mean_28_28,50.065677697217254,6
+demand_rolling_mean_28_28,50.065683180250275,6
 demand_rolling_mean_28_7,33.77269581987627,6
 demand_rolling_min_28_14,19.088020124046338,6
 demand_rolling_min_28_21,15.60076263245243,6
@@ -25,7 +25,7 @@ demand_rolling_min_28_28,12.060760131092591,6
 demand_rolling_min_28_7,23.117894459698093,6
 demand_rolling_skew_28_14,30.75093028011655,6
 demand_rolling_skew_28_21,30.545110191081903,6
-demand_rolling_skew_28_28,32.3438143979122,6
+demand_rolling_skew_28_28,32.34119589984643,6
 demand_rolling_skew_28_7,30.7625262735775,6
 demand_rolling_std_28_14,33.38421589656805,6
 demand_rolling_std_28_21,35.0644809578899,6

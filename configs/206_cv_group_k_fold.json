@@ -32,6 +32,7 @@
         "is_holiday_ca",
         "is_holiday_tx",
         "is_holiday_wi",
+        "moon",
         "is_NBA_final",
         "is_lent",
         "is_ramadan",

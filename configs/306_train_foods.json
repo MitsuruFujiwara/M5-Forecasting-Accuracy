@@ -14,7 +14,6 @@
         "wday",
         "month",
         "year",
-        "moon",
         "event_name_1",
         "event_type_1",
         "event_name_2",
@@ -32,6 +31,7 @@
         "is_holiday_ca",
         "is_holiday_tx",
         "is_holiday_wi",
+        "moon",
         "is_NBA_final",
         "is_lent",
         "is_ramadan",
@@ -88,6 +88,10 @@
         "price_momentum_m",
         "price_momentum_y"
     ],
-    "num_boost_round": 353,
-    "rmse": 2.8524872417641776
+    "num_boost_round": [
+        226,
+        429,
+        489
+    ],
+    "rmse": 2.848557595725499
 }
