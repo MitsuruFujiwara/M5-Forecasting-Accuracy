@@ -9,7 +9,7 @@ python 001_sales.py
 python 002_calendar.py
 python 003_sell_prices.py
 
-#python 101_aggregation_28days.py
+python 101_aggregation_28days.py
 #python 102_aggregation_21days.py
 #python 103_aggregation_14days.py
 #python 104_aggregation_7days.py
@@ -18,7 +18,7 @@ python 106_aggregation_foods.py
 python 107_aggregation_household.py
 python 108_aggregation_hobbies.py
 
-#python 201_cv_lgbm_28days.py
+python 201_cv_lgbm_28days.py
 #python 202_cv_lgbm_21days.py
 #python 203_cv_lgbm_14days.py
 #python 204_cv_lgbm_7days.py
@@ -31,7 +31,7 @@ python 210_cv_lgbm_group_k_fold_foods.py
 python 211_cv_lgbm_group_k_fold_household.py
 python 212_cv_lgbm_group_k_fold_hobbies.py
 
-#python 301_train_lgbm_28days.py
+python 301_train_lgbm_28days.py
 #python 302_train_lgbm_21days.py
 #python 303_train_lgbm_14days.py
 #python 304_train_lgbm_7days.py
