@@ -183,4 +183,4 @@ if __name__ == "__main__":
     oof_file_name = "../output/oof_lgbm_group_k_fold.csv"
     configs = json.load(open('../configs/206_cv_group_k_fold.json'))
     with timer("Full model run"):
-        main(debug=False)
+        main(is_eval=True)

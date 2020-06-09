@@ -25,22 +25,6 @@ def main():
     sub2 = pd.read_csv("../output/submission_lgbm_group_k_fold.csv",index_col=0) # 0.54174
 
     # TODO: calc weights by ridge regression
-    """
-    es = [
-        0.303460,
-        0.329844,
-        0.303750
-    ]
-    ps = [
-        lgbm_0,
-        lgbm_1,
-        cat_0
-    ]
-    e0 = 0.926908
-
-    pred, w = netflix(es, ps, e0, la=.0001)
-    print(w)
-    """
 
     # averaging
     sub = 0.5*sub1 + 0.5*sub2

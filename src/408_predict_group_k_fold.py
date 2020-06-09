@@ -16,7 +16,7 @@ from utils_lag import make_lags
 from utils_score import calc_score_cv
 
 #==============================================================================
-# direct 28days prediction
+# group k-fold prediction
 #==============================================================================
 
 warnings.filterwarnings('ignore')
@@ -31,7 +31,7 @@ def main():
 
     # to pivot
     print('to pivot...')
-#    oof = oof.pivot(index='id', columns='d', values='demand').reset_index()
+    oof = oof.pivot(index='id', columns='d', values='demand').reset_index()
 
     # postprocesssing
     cols_f = [f'F{i}' for i in range(1,29)]
@@ -50,13 +50,13 @@ def main():
     print(f'scores: {scores}')
 
     # submission by API
-    submit(submission_file_name, comment='model401 cv: %.6f' % score)
+#    submit(submission_file_name, comment='model401 cv: %.6f' % score)
 
     # LINE notify
     line_notify('{} done. WRMSSE:{}'.format(sys.argv[0],round(score,6)))
 
 if __name__ == '__main__':
-    submission_file_name = '../output/submission_lgbm_28days.csv'
-    oof_file_name = '../output/oof_lgbm_cv_28days.csv'
-    oof_file_name_pivot = '../output/oof_lgbm_cv_28days_pivot.csv'
+    submission_file_name = "../output/submission_lgbm_group_k_fold.csv"
+    oof_file_name = "../output/oof_lgbm_group_k_fold.csv"
+    oof_file_name_pivot = '../output/oof_lgbm_group_k_fold_pivot.csv'
     main()

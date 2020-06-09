@@ -36,7 +36,9 @@ def main():
     oof_28days = oof_28days.pivot(index='id', columns='d', values='demand').reset_index()
     oof_21days = oof_21days.pivot(index='id', columns='d', values='demand').reset_index()
     oof_14days = oof_14days.pivot(index='id', columns='d', values='demand').reset_index()
-    oof_7days  = oof_7days.pivot(index='id', columns='d', values='demand').reset_index()        
+    oof_7days  = oof_7days.pivot(index='id', columns='d', values='demand').reset_index()
+
+    # TODO: calc WRMSSE score
 
     # split columns
     col_28days = [f'F{i+1}' for i in range(21,28)]
