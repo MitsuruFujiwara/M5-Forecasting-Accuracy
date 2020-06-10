@@ -31,7 +31,7 @@ def main():
 
     # to pivot
     print('to pivot...')
-#    oof = oof.pivot(index='id', columns='d', values='demand').reset_index()
+    oof = oof.pivot(index='id', columns='d', values='demand').reset_index()
 
     # postprocesssing
     cols_f = [f'F{i}' for i in range(1,29)]

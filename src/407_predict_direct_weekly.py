@@ -4,6 +4,7 @@ import json
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
+import sys
 import warnings
 
 from glob import glob
@@ -21,16 +22,16 @@ warnings.filterwarnings('ignore')
 
 def main():
     # load submission files
-    sub_28days = pd.read_csv("../output/submission_lgbm_28days.csv")
-    sub_21days = pd.read_csv("../output/submission_lgbm_21days.csv")
-    sub_14days = pd.read_csv("../output/submission_lgbm_14days.csv")
-    sub_7days  = pd.read_csv("../output/submission_lgbm_7days.csv")
+    sub_28days = pd.read_csv('../output/submission_lgbm_28days.csv')
+    sub_21days = pd.read_csv('../output/submission_lgbm_21days.csv')
+    sub_14days = pd.read_csv('../output/submission_lgbm_14days.csv')
+    sub_7days  = pd.read_csv('../output/submission_lgbm_7days.csv')
 
     # load out of fold files
-    oof_28days = pd.read_csv("../output/oof_lgbm_28days.csv")
-    oof_21days = pd.read_csv("../output/oof_lgbm_21days.csv")
-    oof_14days = pd.read_csv("../output/oof_lgbm_14days.csv")
-    oof_7days  = pd.read_csv("../output/oof_lgbm_7days.csv")
+    oof_28days = pd.read_csv('../output/oof_lgbm_28days.csv')
+    oof_21days = pd.read_csv('../output/oof_lgbm_21days.csv')
+    oof_14days = pd.read_csv('../output/oof_lgbm_14days.csv')
+    oof_7days  = pd.read_csv('../output/oof_lgbm_7days.csv')
 
     # to pivot
     oof_28days = oof_28days.pivot(index='id', columns='d', values='demand').reset_index()
@@ -70,12 +71,6 @@ def main():
     oof = oof.merge(oof_7days[['id']+valid_col_7days_fold2],on='id',how='left')
     oof = oof.merge(oof_7days[['id']+valid_col_7days_fold3],on='id',how='left')
 
-    # calc out of fold WRMSSE score
-    print('calc oof cv scores...')
-    scores = calc_score_cv(oof)
-    score = np.mean(scores)
-    print(f'scores: {scores}')
-
     # split columns
     col_28days = [f'F{i+1}' for i in range(21,28)]
     col_21days = [f'F{i+1}' for i in range(14,21)]
@@ -93,6 +88,12 @@ def main():
     sub.loc[:,cols_f] = sub[cols_f].where(sub[cols_f]>0,0)
     oof.loc[:,cols_d] = oof[cols_d].where(oof[cols_d]>0,0)
 
+    # calc out of fold WRMSSE score
+    print('calc oof cv scores...')
+    scores = calc_score_cv(oof)
+    score = np.mean(scores)
+    print(f'scores: {scores}')
+
     # save csv
     sub.to_csv(submission_file_name, index=False)
     oof.to_csv(oof_file_name_pivot, index=False)
@@ -104,6 +105,6 @@ def main():
     line_notify('{} done. WRMSSE:{}'.format(sys.argv[0],round(score,6)))
 
 if __name__ == '__main__':
-    submission_file_name = "../output/submission_weekly.csv"
+    submission_file_name = '../output/submission_weekly.csv'
     oof_file_name_pivot = '../output/oof_lgbm_direct_weekly_pivot.csv'
     main()

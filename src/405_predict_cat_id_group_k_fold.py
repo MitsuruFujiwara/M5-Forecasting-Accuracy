@@ -86,6 +86,6 @@ def main():
     line_notify('{} done. WRMSSE:{}'.format(sys.argv[0],round(score,6)))
 
 if __name__ == '__main__':
-    submission_file_name = "../output/submission_cat_id_group_k_fold.csv"
-    oof_file_name = "../output/oof_cat_id_group_k_fold.csv"
+    submission_file_name = '../output/submission_cat_id_group_k_fold.csv'
+    oof_file_name = '../output/oof_cat_id_group_k_fold.csv'
     main()
