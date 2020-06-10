@@ -19,7 +19,7 @@ from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
 from utils import custom_asymmetric_train, custom_asymmetric_valid
 
 #==============================================================================
-# Train LightGBM with group k-fold
+# Train LightGBM with group k-fold (28days)
 #==============================================================================
 
 warnings.filterwarnings('ignore')
@@ -105,7 +105,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
                         )
 
         # save model
-        reg.save_model(f'../output/lgbm_group_k_fold_{n_fold}.txt')
+        reg.save_model(f'../output/lgbm_group_k_fold_28days_{n_fold}.txt')
 
         # save predictions
         oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
@@ -124,8 +124,8 @@ def kfold_lightgbm(train_df, test_df, num_folds):
 
     # display importances
     display_importances(feature_importance_df,
-                        '../imp/lgbm_importances_group_k_fold.png',
-                        '../imp/feature_importance_lgbm_group_k_fold.csv')
+                        '../imp/lgbm_importances_group_k_fold_28days.png',
+                        '../imp/feature_importance_lgbm_group_k_fold_28days.csv')
 
     # Full RMSE score and LINE Notify
     full_rmse = rmse(train_df['demand'], oof_preds)
@@ -179,8 +179,8 @@ def main(is_eval=False):
         kfold_lightgbm(train_df, test_df, num_folds=NUM_FOLDS)
 
 if __name__ == "__main__":
-    submission_file_name = "../output/submission_lgbm_group_k_fold.csv"
-    oof_file_name = "../output/oof_lgbm_group_k_fold.csv"
-    configs = json.load(open('../configs/206_cv_group_k_fold.json'))
+    submission_file_name = "../output/submission_lgbm_group_k_fold_28days.csv"
+    oof_file_name = "../output/oof_lgbm_group_k_fold_28days.csv"
+    configs = json.load(open('../configs/213_cv_group_k_fold_28days.json'))
     with timer("Full model run"):
         main(is_eval=True)

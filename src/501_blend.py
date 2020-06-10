@@ -10,7 +10,7 @@ from glob import glob
 from sklearn.linear_model import Ridge
 from tqdm import tqdm
 
-from utils import submit
+from utils import submit, line_notify
 from utils_score import calc_score_cv
 
 #==============================================================================
