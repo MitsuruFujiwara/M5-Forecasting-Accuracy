@@ -146,9 +146,6 @@ def train_lightgbm(train_df,test_df):
     # save csv
     preds.to_csv(submission_file_name, index=False)
 
-    # submission by API
-#    submit(submission_file_name, comment='model301 cv: %.6f' % full_rmse)
-
     # LINE notify
     line_notify('{} done.'.format(sys.argv[0]))
 

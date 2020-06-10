@@ -28,13 +28,13 @@ def main():
     sub_7days  = pd.read_csv('../output/submission_lgbm_7days.csv')
 
     # load out of fold files
-    oof_28days = pd.read_csv('../output/oof_lgbm_28days.csv')
-    oof_21days = pd.read_csv('../output/oof_lgbm_21days.csv')
-    oof_14days = pd.read_csv('../output/oof_lgbm_14days.csv')
-    oof_7days  = pd.read_csv('../output/oof_lgbm_7days.csv')
+    oof_28days = pd.read_csv('../output/oof_lgbm_cv_28days.csv')
+    oof_21days = pd.read_csv('../output/oof_lgbm_cv_21days.csv')
+    oof_14days = pd.read_csv('../output/oof_lgbm_cv_14days.csv')
+    oof_7days  = pd.read_csv('../output/oof_lgbm_cv_7days.csv')
 
     # to pivot
-    oof_28days = oof_28days.pivot(index='id', columns='d', values='demand').reset_index()
+#    oof_28days = oof_28days.pivot(index='id', columns='d', values='demand').reset_index()
     oof_21days = oof_21days.pivot(index='id', columns='d', values='demand').reset_index()
     oof_14days = oof_14days.pivot(index='id', columns='d', values='demand').reset_index()
     oof_7days  = oof_7days.pivot(index='id', columns='d', values='demand').reset_index()
@@ -99,7 +99,7 @@ def main():
     oof.to_csv(oof_file_name_pivot, index=False)
 
     # submission by API
-    submit(submission_file_name, comment='model407 cv: %.6f' % score)
+#    submit(submission_file_name, comment='model407 cv: %.6f' % score)
 
     # LINE notify
     line_notify('{} done. WRMSSE:{}'.format(sys.argv[0],round(score,6)))
