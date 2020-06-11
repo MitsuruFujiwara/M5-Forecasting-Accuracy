@@ -21,13 +21,16 @@ warnings.filterwarnings('ignore')
 
 def main():
     # load submission files
-    sub1 = pd.read_csv('../output/submission_lgbm_28days.csv',index_col=0)
+#    sub1 = pd.read_csv('../output/submission_lgbm_28days.csv',index_col=0)
+    sub1 = pd.read_csv('../output/submission_weekly_group_k_fold.csv',index_col=0)
     sub2 = pd.read_csv('../output/submission_cat_id.csv',index_col=0)
     sub3 = pd.read_csv('../output/submission_cat_id_group_k_fold.csv',index_col=0)
     sub4 = pd.read_csv('../output/submission_weekly.csv',index_col=0)
+    oof_file_name_pivot = '../output/oof_lgbm_weekly_group_k_fold_pivot.csv'
 
     # load oof files
-    oof1 = pd.read_csv('../output/oof_lgbm_cv_28days.csv')
+#    oof1 = pd.read_csv('../output/oof_lgbm_cv_28days.csv')
+    oof1 = pd.read_csv('../output/oof_lgbm_weekly_group_k_fold_pivot.csv')
     oof2 = pd.read_csv('../output/oof_cat_id.csv')
     oof3 = pd.read_csv('../output/oof_cat_id_group_k_fold.csv')
     oof4 = pd.read_csv('../output/oof_lgbm_direct_weekly_pivot.csv')
