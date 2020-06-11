@@ -56,6 +56,6 @@ def main():
 
 if __name__ == '__main__':
     submission_file_name = '../output/submission_lgbm_group_k_fold.csv'
-    oof_file_name = '../output/oof_lgbm_group_k_fold.csv'
+    oof_file_name = '../output/oof_lgbm_group_k_fold_28days.csv'
     oof_file_name_pivot = '../output/oof_lgbm_group_k_fold_pivot.csv'
     main()
