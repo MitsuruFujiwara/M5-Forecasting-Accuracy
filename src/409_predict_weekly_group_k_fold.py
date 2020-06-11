@@ -97,11 +97,10 @@ def main():
 
     # split test1 / test2
     sub1 = oof[['id']+COLS_TEST1]
-    sub2 = sub[['id']+COLS_TEST2]
+    sub2 = sub[['id']+['F' + str(d + 1) for d in range(28)]]
 
     # change column names
     sub1.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
-    sub2.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
 
     # replace test1 id
     sub1['id']= sub1['id'].str.replace('_evaluation','_validation')
