@@ -23,7 +23,7 @@ python 202_cv_lgbm_21days.py
 python 203_cv_lgbm_14days.py
 python 204_cv_lgbm_7days.py
 #python 205_cv_lgbm_diff.py
-python 206_cv_lgbm_group_k_fold.py
+#python 206_cv_lgbm_group_k_fold.py
 python 207_cv_lgbm_foods.py
 python 208_cv_lgbm_household.py
 python 209_cv_lgbm_hobbies.py
