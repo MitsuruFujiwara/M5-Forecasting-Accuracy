@@ -79,7 +79,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
                 'boosting': 'gbdt',
                 'metric': ['rmse'],
                 'objective':'tweedie',
-                'learning_rate': 0.3,
+                'learning_rate': 0.1,
                 'tweedie_variance_power':1.1,
                 'subsample': 0.5,
                 'subsample_freq': 1,
@@ -90,7 +90,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
                 'seed':326,
                 'bagging_seed':326,
                 'drop_seed':326,
-#                'num_threads':-1
+                'num_threads':-1
                 }
 
         # train model

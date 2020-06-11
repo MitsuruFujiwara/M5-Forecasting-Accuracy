@@ -30,11 +30,11 @@ warnings.filterwarnings('ignore')
 def timer(title):
     t0 = time.time()
     yield
-    print("{} - done in {:.0f}s".format(title, time.time() - t0))
+    print('{} - done in {:.0f}s'.format(title, time.time() - t0))
 
 # Display/plot feature importance
 def display_importances(feature_importance_df_, outputpath, csv_outputpath):
-    cols = feature_importance_df_[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance", ascending=False)[:40].index
+    cols = feature_importance_df_[['feature', 'importance']].groupby('feature').mean().sort_values(by='importance', ascending=False)[:40].index
     best_features = feature_importance_df_.loc[feature_importance_df_.feature.isin(cols)]
 
     # for checking all importance
@@ -42,14 +42,14 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
     _feature_importance_df_.to_csv(csv_outputpath)
 
     plt.figure(figsize=(8, 10))
-    sns.barplot(x="importance", y="feature", data=best_features.sort_values(by="importance", ascending=False))
+    sns.barplot(x='importance', y='feature', data=best_features.sort_values(by='importance', ascending=False))
     plt.title('LightGBM Features (avg over folds)')
     plt.tight_layout()
     plt.savefig(outputpath)
 
 # Train LightGBM
 def train_lightgbm(train_df,test_df):
-    print("Starting LightGBM. Train shape: {}".format(train_df.shape))
+    print('Starting LightGBM. Train shape: {}'.format(train_df.shape))
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -79,7 +79,7 @@ def train_lightgbm(train_df,test_df):
             'seed':326,
             'bagging_seed':326,
             'drop_seed':326,
-#            'num_threads':-1
+            'num_threads':-1
             }
 
     # train model
@@ -100,9 +100,9 @@ def train_lightgbm(train_df,test_df):
 
     # save feature importances
     fold_importance_df = pd.DataFrame()
-    fold_importance_df["feature"] = feats
-    fold_importance_df["importance"] = np.log1p(reg.feature_importance(importance_type='gain', iteration=reg.best_iteration))
-    fold_importance_df["fold"] = 1
+    fold_importance_df['feature'] = feats
+    fold_importance_df['importance'] = np.log1p(reg.feature_importance(importance_type='gain', iteration=reg.best_iteration))
+    fold_importance_df['fold'] = 1
     feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
 
     del reg
@@ -150,7 +150,7 @@ def train_lightgbm(train_df,test_df):
     line_notify('{} done.'.format(sys.argv[0]))
 
 def main(is_eval=False):
-    with timer("Load Datasets"):
+    with timer('Load Datasets'):
         # load feathers
         files = sorted(glob('../feats/f102_*.feather'))
         df = pd.concat([pd.read_feather(f) for f in tqdm(files, mininterval=60)], axis=1)
@@ -178,12 +178,12 @@ def main(is_eval=False):
         del df
         gc.collect()
 
-    with timer("Run LightGBM with kfold"):
+    with timer('Run LightGBM with kfold'):
         train_lightgbm(train_df, test_df)
 
-if __name__ == "__main__":
-    submission_file_name = "../output/submission_lgbm_21days.csv"
-    oof_file_name = "../output/oof_lgbm_21days.csv"
+if __name__ == '__main__':
+    submission_file_name = '../output/submission_lgbm_21days.csv'
+    oof_file_name = '../output/oof_lgbm_21days.csv'
     configs = json.load(open('../configs/302_train_21days.json'))
-    with timer("Full model run"):
+    with timer('Full model run'):
         main(is_eval=True)

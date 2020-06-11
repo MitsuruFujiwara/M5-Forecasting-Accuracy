@@ -37,10 +37,10 @@ def main():
     df = pd.read_csv('../input/sales_train_evaluation.csv')
     calendar = pd.read_csv('../input/calendar.csv')
     prices = pd.read_csv('../input/sell_prices.csv')
-    sample_sub = pd.read_csv("../input/sample_submission.csv")
+    sample_sub = pd.read_csv('../input/sample_submission.csv')
 
     # order for sort
-    sample_sub["order"] = range(sample_sub.shape[0])
+    sample_sub['order'] = range(sample_sub.shape[0])
 
     # merge
     sub = sub_foods.append(sub_household)
@@ -89,12 +89,12 @@ def main():
     print(f'scores: {scores}')
 
     # submission by API
-    submit(submission_file_name, comment='model404 cv: %.6f' % score)
+#    submit(submission_file_name, comment='model404 cv: %.6f' % score)
 
     # LINE notify
     line_notify('{} done. WRMSSE:{}'.format(sys.argv[0],round(score,6)))
 
 if __name__ == '__main__':
-    submission_file_name = "../output/submission_cat_id.csv"
-    oof_file_name = "../output/oof_cat_id.csv"
+    submission_file_name = '../output/submission_cat_id.csv'
+    oof_file_name = '../output/oof_cat_id.csv'
     main()

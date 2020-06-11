@@ -34,7 +34,7 @@ def main():
     oof_7days  = pd.read_csv('../output/oof_lgbm_cv_7days.csv')
 
     # to pivot
-#    oof_28days = oof_28days.pivot(index='id', columns='d', values='demand').reset_index()
+    oof_28days = oof_28days.pivot(index='id', columns='d', values='demand').reset_index()
     oof_21days = oof_21days.pivot(index='id', columns='d', values='demand').reset_index()
     oof_14days = oof_14days.pivot(index='id', columns='d', values='demand').reset_index()
     oof_7days  = oof_7days.pivot(index='id', columns='d', values='demand').reset_index()

@@ -65,7 +65,7 @@ def main():
     df = df.merge(oof4, on=['id','d'],how='left')
 
     # calc weights by ridge regression
-    reg = Ridge(alpha=1.0,fit_intercept=False)
+    reg = Ridge(alpha=1.0,fit_intercept=False,random_state=326)
     reg.fit(df[['oof1','oof2','oof3','oof4']],df['demand'])
 
     print('weights: {}'.format(reg.coef_))

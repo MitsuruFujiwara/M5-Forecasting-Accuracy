@@ -125,7 +125,7 @@ def main():
     oof.to_csv(oof_file_name_pivot, index=False)
 
     # submission by API
-    submit(submission_file_name, comment='model409 cv: %.6f' % score)
+#    submit(submission_file_name, comment='model409 cv: %.6f' % score)
 
     # LINE notify
     line_notify('{} done. WRMSSE:{}'.format(sys.argv[0],round(score,6)))

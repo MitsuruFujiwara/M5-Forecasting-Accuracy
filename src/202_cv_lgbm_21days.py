@@ -99,7 +99,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
                 'seed':326,
                 'bagging_seed':326,
                 'drop_seed':326,
-#                'num_threads':-1
+                'num_threads':-1
                 }
 
         # train model
