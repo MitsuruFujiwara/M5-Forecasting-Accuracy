@@ -21,19 +21,22 @@ warnings.filterwarnings('ignore')
 
 def main():
     # load submission files
-#    sub1 = pd.read_csv('../output/submission_lgbm_28days.csv',index_col=0)
-    sub1 = pd.read_csv('../output/submission_weekly_group_k_fold.csv',index_col=0)
-    sub2 = pd.read_csv('../output/submission_cat_id.csv',index_col=0)
-    sub3 = pd.read_csv('../output/submission_cat_id_group_k_fold.csv',index_col=0)
-    sub4 = pd.read_csv('../output/submission_weekly.csv',index_col=0)
-    oof_file_name_pivot = '../output/oof_lgbm_weekly_group_k_fold_pivot.csv'
+    sub1 = pd.read_csv('../output/submission_lgbm_28days.csv',index_col=0) # 0.61462
+    sub2 = pd.read_csv('../output/submission_cat_id.csv',index_col=0) # 0.62038
+    sub3 = pd.read_csv('../output/submission_cat_id_group_k_fold.csv',index_col=0) # 0.59688
+    sub4 = pd.read_csv('../output/submission_weekly.csv',index_col=0) # 0.59736
+    sub5 = pd.read_csv('../output/submission_lgbm_group_k_fold.csv',index_col=0) # 0.64584
+    sub6 = pd.read_csv('../output/submission_weekly_group_k_fold.csv',index_col=0) # 0.62186
+    sub7 = pd.read_csv('../output/submission_holiday.csv',index_col=0) # 0.60812
 
     # load oof files
-#    oof1 = pd.read_csv('../output/oof_lgbm_cv_28days.csv')
-    oof1 = pd.read_csv('../output/oof_lgbm_weekly_group_k_fold_pivot.csv')
+    oof1 = pd.read_csv('../output/oof_lgbm_cv_28days_pivot.csv')
     oof2 = pd.read_csv('../output/oof_cat_id.csv')
     oof3 = pd.read_csv('../output/oof_cat_id_group_k_fold.csv')
     oof4 = pd.read_csv('../output/oof_lgbm_direct_weekly_pivot.csv')
+    oof5 = pd.read_csv('../output/oof_lgbm_group_k_fold_pivot.csv')
+    oof6 = pd.read_csv('../output/oof_lgbm_weekly_group_k_fold_pivot.csv')
+    oof7 = pd.read_csv('../output/oof_holiday_pivot.csv')
 
     # load target data
     df = pd.read_csv('../input/sales_train_evaluation.csv')

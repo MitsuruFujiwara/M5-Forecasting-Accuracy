@@ -6,3 +6,4 @@
 /feats/*.pkl
 /feats/sales/*.pkl
 /feats/sales_diff/*.pkl
+*.xlsx

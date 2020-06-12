@@ -79,7 +79,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
                 'boosting': 'gbdt',
                 'metric': ['rmse'],
                 'objective':'tweedie',
-                'learning_rate': 0.1,
+                'learning_rate': 0.05,
                 'tweedie_variance_power':1.1,
                 'subsample': 0.5,
                 'subsample_freq': 1,
@@ -166,10 +166,10 @@ def main(is_eval=False):
         #=======================================================================
 
         if is_eval:
-            train_df = df[df['date']<'2016-05-23']
+            train_df = df[(df['date']<'2016-05-23')&(df['date']>='2014-05-23')]
             test_df = df[df['date']>='2016-05-23']
         else:
-            train_df = df[df['date']<'2016-04-25']
+            train_df = df[(df['date']<'2016-04-25')&(df['date']>='2014-04-25')]
             test_df = df[df['date']>='2016-04-25']
 
         del df
