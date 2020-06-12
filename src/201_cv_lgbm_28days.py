@@ -120,7 +120,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
 
         # save predictions
         oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
-        sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration) / folds.n_splits
+#        sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration) / folds.n_splits
 
         # save best iteration
         avg_best_iteration += reg.best_iteration / folds.n_splits
