@@ -32,16 +32,30 @@ def make_lags(df,days=28):
 
     return df
 
-# TODO: # target encoding
-def target_encoding(train_x,valid_x,train_y):
+# target encoding
+def target_encoding(train_df,test_df):
     # cols to encode
-    cols_id = ['item_id','cat_id','dept_id']
+    cols_id = ['item_id','cat_id','dept_id','store_id','state_id']
     enc_cols = []
     for c in cols_id:
-        df_grouped = train_df[[c,'demand']].groupby(c)['demand']
+        df_grouped = train_df[[c,'demand']].groupby(c)
 
-        train_df[f'enc_{c}_mean'] = train_df[c].map(df_grouped)
-        test_df[f'enc_{c}_mean'] = test_df[c].map(df_grouped)
+        train_df[f'enc_{c}_mean'] = train_df[c].map(df_grouped.mean()['demand'])
+        test_df[f'enc_{c}_mean'] = test_df[c].map(df_grouped.mean()['demand'])
         enc_cols.append(f'enc_{c}_mean')
 
     return train_df, test_df, enc_cols
+
+# target encoding for cv
+def target_encoding_cv(train_df,train_idx,valid_idx):
+    cols_id = ['item_id','cat_id','dept_id','store_id','state_id']
+    enc_cols = []
+    print('target encoding...')
+    for c in tqdm(cols_id):
+        df_grouped = train_df[[c,'demand']].iloc[train_idx].groupby(c)
+        train_df[f'enc_{c}_mean'] = 0
+        train_df.iloc[train_idx][f'enc_{c}_mean'] += train_df.iloc[train_idx][c].map(df_grouped.mean()['demand'])
+        train_df.iloc[valid_idx][f'enc_{c}_mean'] += train_df.iloc[valid_idx][c].map(df_grouped.mean()['demand'])
+        enc_cols.append(f'enc_{c}_mean')
+
+    return train_df, enc_cols

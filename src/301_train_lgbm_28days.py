@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils import custom_asymmetric_train, custom_asymmetric_valid
+from utils_lag import target_encoding
 
 #==============================================================================
 # Train LightGBM with 28days lag
@@ -51,6 +51,9 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
 def train_lightgbm(train_df,test_df):
     print('Starting LightGBM. Train shape: {}'.format(train_df.shape))
 
+    # target endcoding
+    train_df, test_df, enc_cols = target_encoding(train_df,test_df)
+
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
     sub_preds = np.zeros(test_df.shape[0])
@@ -58,7 +61,7 @@ def train_lightgbm(train_df,test_df):
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
     # set data structure
-    lgb_train = lgb.Dataset(train_df[feats],
+    lgb_train = lgb.Dataset(train_df[feats+enc_cols],
                             label=train_df['demand'],
                             free_raw_data=False)
 

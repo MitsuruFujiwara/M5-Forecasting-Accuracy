@@ -42,11 +42,6 @@ def main():
         df[c], _ = pd.factorize(df[c])
         df[c].replace(-1,np.nan,inplace=True)
 
-    # count encoding
-    cols_string = ['item_id','dept_id','cat_id','store_id','state_id']
-    for c in cols_string:
-        df[f'enc_{c}_cnt'] = df[c].map(df[c].value_counts())
-
     # add price features
     df_grouped = df[['id','sell_price']].groupby('id')['sell_price']
     df['shift_price_t1'] = df_grouped.transform(lambda x: x.shift(1))
