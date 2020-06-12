@@ -66,10 +66,11 @@ def kfold_lightgbm(train_df, test_df, num_folds):
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df)):
         # target encoding
         train_df, enc_cols = target_encoding_cv(train_df,train_idx, valid_idx)
+        feats += enc_cols
 
         # split train/valid
-        train_x, train_y = train_df[feats+enc_cols].iloc[train_idx], train_df['demand'].iloc[train_idx]
-        valid_x, valid_y = train_df[feats+enc_cols].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
+        train_x, train_y = train_df[feats].iloc[train_idx], train_df['demand'].iloc[train_idx]
+        valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
 
         # save validation indexes
         valid_idxs += list(valid_idx)

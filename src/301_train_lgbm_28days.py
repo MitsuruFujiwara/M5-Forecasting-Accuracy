@@ -58,10 +58,10 @@ def train_lightgbm(train_df,test_df):
     oof_preds = np.zeros(train_df.shape[0])
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
-    feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
+    feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED] + enc_cols
 
     # set data structure
-    lgb_train = lgb.Dataset(train_df[feats+enc_cols],
+    lgb_train = lgb.Dataset(train_df[feats],
                             label=train_df['demand'],
                             free_raw_data=False)
 
