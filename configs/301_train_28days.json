@@ -80,11 +80,6 @@
         "demand_rolling_min_28_28",
         "demand_rolling_skew_28_28",
         "demand_rolling_kurt_28_28",
-        "enc_item_id_cnt",
-        "enc_dept_id_cnt",
-        "enc_cat_id_cnt",
-        "enc_store_id_cnt",
-        "enc_state_id_cnt",
         "shift_price_t1",
         "price_change_t1",
         "rolling_price_max_t365",
@@ -94,6 +89,6 @@
         "price_momentum_m",
         "price_momentum_y"
     ],
-    "num_boost_round": 489,
-    "rmse": 2.255506168554302
+    "num_boost_round": 398,
+    "rmse": 2.252074442932264
 }
