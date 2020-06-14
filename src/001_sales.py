@@ -50,7 +50,7 @@ def main(is_eval=False):
     # merge
     if not is_eval:
         df = df.merge(test1,on='id',how='left')
-        
+
     df = df.merge(test2,on='id',how='left')
 
     del test1, test2
@@ -84,6 +84,9 @@ def main(is_eval=False):
     df = df[df['d_numeric']!=1427] # 2014-12-25
     df = df[df['d_numeric']!=1792] # 2015-12-25
 
+    # add is zero flag
+    df['is_zero'] = (df['demand']==0).astype(int)
+    
     # save pkl
 #    save2pkl('../feats/sales.pkl', df)
     to_pickles(df, '../feats/sales', split_size=3)

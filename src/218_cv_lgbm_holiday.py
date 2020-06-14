@@ -16,8 +16,8 @@ from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils import CustomTimeSeriesSplitter, custom_asymmetric_train, custom_asymmetric_valid
-from utils_lag import target_encoding
+from utils import CustomTimeSeriesSplitter
+from utils_lag import target_encoding_cv
 
 #==============================================================================
 # Train LightGBM with custom cv (holiday)
@@ -99,7 +99,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
                 'seed':326,
                 'bagging_seed':326,
                 'drop_seed':326,
-#                'num_threads':-1
+                'num_threads':-1
                 }
 
         # train model

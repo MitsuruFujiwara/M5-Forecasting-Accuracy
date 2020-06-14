@@ -16,7 +16,8 @@ from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils import CustomTimeSeriesSplitter, custom_asymmetric_train, custom_asymmetric_valid
+from utils import CustomTimeSeriesSplitter
+from utils_lag import target_encoding_cv
 
 #==============================================================================
 # Train LightGBM with custom cv (foods)
