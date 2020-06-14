@@ -45,11 +45,10 @@ def make_lags(df,days=28):
     return df
 
 # target encoding
-def target_encoding(train_x,valid_x,train_y):
-    cols_id = ['item_id','cat_id','dept_id','store_id','state_id']
+def target_encoding(train_x,valid_x,train_y,cols):
     enc_cols = []
     print('target encoding...')
-    for c in tqdm(cols_id):
+    for c in tqdm(cols):
         tmp_df = pd.DataFrame({c:train_x[c],'target':train_y})
         target_mean = tmp_df.groupby(c)['target'].mean()
         train_x[f'enc_{c}_mean'] = train_x[c].map(target_mean)

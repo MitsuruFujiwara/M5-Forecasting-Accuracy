@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils import custom_asymmetric_train, custom_asymmetric_valid
+from utils_lag import target_encoding
 
 #==============================================================================
 # Train LightGBM with foods
@@ -51,11 +51,15 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
 def train_lightgbm(train_df,test_df):
     print('Starting LightGBM. Train shape: {}'.format(train_df.shape))
 
+    # target endcoding
+    cols_encoding=['item_id','dept_id','store_id','state_id']
+    train_df, test_df, enc_cols = target_encoding(train_df,test_df,train_df['demand'],cols_encoding)
+
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
-    feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
+    feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED] + enc_cols
 
     # set data structure
     lgb_train = lgb.Dataset(train_df[feats],

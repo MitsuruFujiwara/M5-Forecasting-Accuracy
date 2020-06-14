@@ -15,9 +15,9 @@ from glob import glob
 from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
-from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils import CustomTimeSeriesSplitter, custom_asymmetric_train, custom_asymmetric_valid
-from utils_lag import target_encoding_cv
+from utils import NUM_FOLDS, FEATS_EXCLUDED
+from utils import CustomTimeSeriesSplitter
+from utils_lag import target_encoding
 
 #==============================================================================
 # Train LightGBM with custom cv (21days lag)
@@ -64,13 +64,13 @@ def kfold_lightgbm(train_df, test_df, num_folds):
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df)):
-        # target encoding
-        train_df, enc_cols = target_encoding_cv(train_df,train_idx, valid_idx)
-        feats += enc_cols
-
         # split train/valid
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['demand'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
+
+        # target encoding
+        cols_encoding=['item_id','cat_id','dept_id','store_id','state_id']
+        train_x, valid_x, enc_cols = target_encoding(train_x,valid_x,train_y,cols_encoding)
 
         # save validation indexes
         valid_idxs += list(valid_idx)
@@ -127,7 +127,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
 
         # save feature importances
         fold_importance_df = pd.DataFrame()
-        fold_importance_df['feature'] = feats
+        fold_importance_df['feature'] = feats+enc_cols
         fold_importance_df['importance'] = np.log1p(reg.feature_importance(importance_type='gain', iteration=reg.best_iteration))
         fold_importance_df['fold'] = n_fold + 1
         feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
