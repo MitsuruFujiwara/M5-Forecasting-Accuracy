@@ -33,6 +33,9 @@ def main():
     print('to pivot...')
     oof = oof.pivot(index='id', columns='d', values='demand').reset_index()
 
+    # fill na
+    oof.fillna(0,inplace=True)
+
     # postprocesssing
     cols_f = [f'F{i}' for i in range(1,29)]
     cols_d = [c for c in oof.columns if 'd_' in c]
@@ -50,7 +53,7 @@ def main():
     print(f'scores: {scores}')
 
     # submission by API
-    submit(submission_file_name, comment='model401 cv: %.6f' % score)
+#    submit(submission_file_name, comment='model401 cv: %.6f' % score)
 
     # LINE notify
     line_notify('{} done. WRMSSE:{}'.format(sys.argv[0],round(score,6)))

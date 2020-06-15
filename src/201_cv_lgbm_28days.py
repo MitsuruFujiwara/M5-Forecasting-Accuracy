@@ -15,10 +15,8 @@ from glob import glob
 from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
-from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils import CustomTimeSeriesSplitter, custom_asymmetric_train, custom_asymmetric_valid
-from utils_lag import target_encoding
-from utils_score import get_evaluators
+from utils import NUM_FOLDS, FEATS_EXCLUDED
+from utils import CustomTimeSeriesSplitter
 
 #==============================================================================
 # Train LightGBM with custom cv (28days lag)
@@ -56,27 +54,17 @@ def kfold_lightgbm(train_df, test_df, num_folds):
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
-    sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
     valid_idxs=[]
     avg_best_iteration = 0 # average of best iteration
 
-    # get evaluators
-    lgb_evaluators = get_evaluators()
-
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df)):
         # split train/valid
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['demand'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
-
-        # target encoding
-        cols_encoding=['item_id','cat_id','dept_id','store_id','state_id',
-                       'item_id_store_id','item_id_state_id','dept_id_store_id',
-                       'dept_id_state_id']
-        train_x, valid_x, enc_cols = target_encoding(train_x,valid_x,train_y,cols_encoding)
 
         # save validation indexes
         valid_idxs += list(valid_idx)
@@ -114,10 +102,10 @@ def kfold_lightgbm(train_df, test_df, num_folds):
         reg = lgb.train(
                         params,
                         lgb_train,
-                        valid_sets=[lgb_test],
+                        valid_sets=[lgb_train, lgb_test],
+                        valid_names=['train', 'test'],
                         num_boost_round=10000,
                         early_stopping_rounds=100,
-                        feval=lgb_evaluators[n_fold].feval,
                         verbose_eval=10
                         )
 
@@ -126,14 +114,13 @@ def kfold_lightgbm(train_df, test_df, num_folds):
 
         # save predictions
         oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
-#        sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration) / folds.n_splits
 
         # save best iteration
         avg_best_iteration += reg.best_iteration / folds.n_splits
 
         # save feature importances
         fold_importance_df = pd.DataFrame()
-        fold_importance_df['feature'] = feats+enc_cols
+        fold_importance_df['feature'] = feats
         fold_importance_df['importance'] = np.log1p(reg.feature_importance(importance_type='gain', iteration=reg.best_iteration))
         fold_importance_df['fold'] = n_fold + 1
         feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)

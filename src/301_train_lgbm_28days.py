@@ -18,7 +18,6 @@ from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils_lag import target_encoding
 
 #==============================================================================
 # Train LightGBM with 28days lag
@@ -50,12 +49,6 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
 # Train LightGBM
 def train_lightgbm(train_df,test_df):
     print('Starting LightGBM. Train shape: {}'.format(train_df.shape))
-
-    # target endcoding
-    cols_encoding=['item_id','cat_id','dept_id','store_id','state_id',
-                   'item_id_store_id','item_id_state_id','dept_id_store_id',
-                   'dept_id_state_id']
-    train_df, test_df, enc_cols = target_encoding(train_df,test_df,train_df['demand'],cols_encoding)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
