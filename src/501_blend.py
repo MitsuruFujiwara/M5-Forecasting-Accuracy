@@ -38,8 +38,9 @@ def main():
     oof6 = pd.read_csv('../output/oof_lgbm_weekly_group_k_fold_pivot.csv')
     oof7 = pd.read_csv('../output/oof_holiday_pivot.csv')
 
-    # load target data
+    # load target data & sample submission
     df = pd.read_csv('../input/sales_train_evaluation.csv')
+    sample_sub = pd.read_csv('../input/sample_submission.csv')
 
     # validation columns
     end_train=1941
@@ -53,36 +54,70 @@ def main():
     oof2 = oof2[['id']+cols_valid3+cols_valid2+cols_valid1]
     oof3 = oof3[['id']+cols_valid3+cols_valid2+cols_valid1]
     oof4 = oof4[['id']+cols_valid3+cols_valid2+cols_valid1]
+    oof5 = oof5[['id']+cols_valid3+cols_valid2+cols_valid1]
+    oof6 = oof6[['id']+cols_valid3+cols_valid2+cols_valid1]
+    oof7 = oof7[['id']+cols_valid3+cols_valid2+cols_valid1]
 
-    # reshape
+    # reshape sub
+    sample_sub = pd.melt(sample_sub,id_vars='id',var_name='d',value_name='demand')
+    sub1 = pd.melt(sub1,id_vars='id',var_name='d',value_name='sub1')
+    sub2 = pd.melt(sub2,id_vars='id',var_name='d',value_name='sub2')
+    sub3 = pd.melt(sub3,id_vars='id',var_name='d',value_name='sub3')
+    sub4 = pd.melt(sub4,id_vars='id',var_name='d',value_name='sub4')
+    sub5 = pd.melt(sub5,id_vars='id',var_name='d',value_name='sub5')
+    sub6 = pd.melt(sub6,id_vars='id',var_name='d',value_name='sub6')
+    sub7 = pd.melt(sub7,id_vars='id',var_name='d',value_name='sub7')
+
+    # aggregate sub
+    sub = sample_sub.merge(sub1, on=['id','d'],how='left')
+    sub = sub.merge(sub2, on=['id','d'],how='left')
+    sub = sub.merge(sub3, on=['id','d'],how='left')
+    sub = sub.merge(sub4, on=['id','d'],how='left')
+    sub = sub.merge(sub5, on=['id','d'],how='left')
+    sub = sub.merge(sub6, on=['id','d'],how='left')
+    sub = sub.merge(sub7, on=['id','d'],how='left')
+
+    # reshape oof
     df = pd.melt(df,id_vars='id',var_name='d',value_name='demand')
     oof1 = pd.melt(oof1,id_vars='id',var_name='d',value_name='oof1')
     oof2 = pd.melt(oof2,id_vars='id',var_name='d',value_name='oof2')
     oof3 = pd.melt(oof3,id_vars='id',var_name='d',value_name='oof3')
     oof4 = pd.melt(oof4,id_vars='id',var_name='d',value_name='oof4')
+    oof5 = pd.melt(oof5,id_vars='id',var_name='d',value_name='oof4')
+    oof6 = pd.melt(oof6,id_vars='id',var_name='d',value_name='oof4')
+    oof7 = pd.melt(oof7,id_vars='id',var_name='d',value_name='oof4')
 
-    # aggregate predictions
+    # aggregate oof
     df = df.merge(oof1, on=['id','d'],how='left')
     df = df.merge(oof2, on=['id','d'],how='left')
     df = df.merge(oof3, on=['id','d'],how='left')
     df = df.merge(oof4, on=['id','d'],how='left')
+    df = df.merge(oof5, on=['id','d'],how='left')
+    df = df.merge(oof6, on=['id','d'],how='left')
+    df = df.merge(oof7, on=['id','d'],how='left')
 
     # calc weights by ridge regression
+    cols_oofs = ['oof1','oof2','oof3','oof4','oof5','oof6','oof7']
     reg = Ridge(alpha=1.0,fit_intercept=False,random_state=326)
-    reg.fit(df[['oof1','oof2','oof3','oof4']],df['demand'])
+    reg.fit(df[cols_oofs],df['demand'])
 
     print('weights: {}'.format(reg.coef_))
 
     # blending
-    sub = reg.coef_[0]*sub1+reg.coef_[1]*sub2+reg.coef_[2]*sub3+reg.coef_[3]*sub4
-    df['oof'] = reg.coef_[0]*df['oof1']+reg.coef_[1]*df['oof2']+reg.coef_[2]*df['oof3']+reg.coef_[3]*df['oof4']
+    sub['demand'] = reg.coef_[0]*sub['sub1']+reg.coef_[1]*sub['sub2']+reg.coef_[2]*sub['sub3'] \
+                  + reg.coef_[3]*sub['sub4']+reg.coef_[4]*sub['sub5']+reg.coef_[5]*sub['sub6'] \
+                  + reg.coef_[6]*sub['sub7']
+
+    df['oof'] = reg.coef_[0]*df['oof1']+reg.coef_[1]*df['oof2']+reg.coef_[2]*df['oof3'] \
+              + reg.coef_[3]*df['oof4']+reg.coef_[4]*df['oof5']+reg.coef_[5]*df['oof6'] \
+              + reg.coef_[6]*df['oof7']
 
     # postprocesssing
-    cols_f = [f'F{i}' for i in range(1,29)]
-    sub.loc[:,cols_f] = sub[cols_f].where(sub[cols_f]>0,0)
+    sub.loc[:,'demand'] = sub['demand'].where(sub['demand']>0,0)
     df.loc[:,'oof'] = df['oof'].where(df['oof']>0,0)
 
     # to pivot
+    sub = sub[['id','d','oof']].pivot(index='id', columns='d', values='demand').reset_index()
     oof = df[['id','d','oof']].pivot(index='id', columns='d', values='oof').reset_index()
 
     # calc out of fold WRMSSE score
@@ -90,10 +125,6 @@ def main():
     scores = calc_score_cv(oof)
     score = np.mean(scores)
     print(f'scores: {scores}')
-
-    # reset index
-    sub.reset_index(inplace=True)
-    oof.reset_index(inplace=True)
 
     # save csv
     sub.to_csv(submission_file_name, index=False)
