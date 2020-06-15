@@ -18,6 +18,7 @@ from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
 from utils import CustomTimeSeriesSplitter, custom_asymmetric_train, custom_asymmetric_valid
 from utils_lag import target_encoding
+from utils_score import get_evaluators
 
 #==============================================================================
 # Train LightGBM with custom cv (28days lag)
@@ -61,6 +62,9 @@ def kfold_lightgbm(train_df, test_df, num_folds):
 
     valid_idxs=[]
     avg_best_iteration = 0 # average of best iteration
+
+    # get evaluators
+    lgb_evaluators = get_evaluators()
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df)):
@@ -110,10 +114,10 @@ def kfold_lightgbm(train_df, test_df, num_folds):
         reg = lgb.train(
                         params,
                         lgb_train,
-                        valid_sets=[lgb_train, lgb_test],
-                        valid_names=['train', 'test'],
+                        valid_sets=[lgb_test],
                         num_boost_round=10000,
-                        early_stopping_rounds=200,
+                        early_stopping_rounds=100,
+                        feval=lgb_evaluators[n_fold].feval,
                         verbose_eval=10
                         )
 

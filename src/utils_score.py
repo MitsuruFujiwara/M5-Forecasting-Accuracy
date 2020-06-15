@@ -5,6 +5,8 @@ import numpy as np
 from typing import Union
 from tqdm import tqdm
 
+VERBOSE=False
+
 # function for evaluating WRMSSEE
 # ref: https://www.kaggle.com/c/m5-forecasting-accuracy/discussion/133834
 class WRMSSEEvaluator(object):
@@ -14,7 +16,7 @@ class WRMSSEEvaluator(object):
         train_target_columns = train_y.columns.tolist()
         weight_columns = train_y.iloc[:, -28:].columns.tolist()
 
-        train_df['all_id'] = 0  # for lv1 aggregation
+        train_df['all_id'] = 0
 
         id_columns = train_df.loc[:, ~train_df.columns.str.startswith('d_')].columns.tolist()
         valid_target_columns = valid_df.loc[:, valid_df.columns.str.startswith('d_')].columns.tolist()
@@ -35,20 +37,20 @@ class WRMSSEEvaluator(object):
 
         self.group_ids = (
             'all_id',
-            'cat_id',
             'state_id',
-            'dept_id',
             'store_id',
-            'item_id',
+            'cat_id',
+            'dept_id',
             ['state_id', 'cat_id'],
             ['state_id', 'dept_id'],
             ['store_id', 'cat_id'],
             ['store_id', 'dept_id'],
+            'item_id',
             ['item_id', 'state_id'],
             ['item_id', 'store_id']
         )
 
-        for i, group_id in enumerate(tqdm(self.group_ids)):
+        for i, group_id in enumerate(self.group_ids):
             train_y = train_df.groupby(group_id)[train_target_columns].sum()
             scale = []
             for _, row in train_y.iterrows():
@@ -74,6 +76,9 @@ class WRMSSEEvaluator(object):
         weight_df = pd.concat([self.train_df[self.id_columns], weight_df], axis=1, sort=False)
         return weight_df
 
+    def get_scale(self, valid_preds: pd.DataFrame, lv: int) -> pd.Series:
+        return getattr(self, f'lv{lv}_scale')
+
     def rmsse(self, valid_preds: pd.DataFrame, lv: int) -> pd.Series:
         valid_y = getattr(self, f'lv{lv}_valid_df')
         score = ((valid_y - valid_preds) ** 2).mean(axis=1)
@@ -88,16 +93,78 @@ class WRMSSEEvaluator(object):
 
         valid_preds = pd.concat([self.valid_df[self.id_columns], valid_preds], axis=1, sort=False)
 
-        group_ids = []
         all_scores = []
         for i, group_id in enumerate(self.group_ids):
             lv_scores = self.rmsse(valid_preds.groupby(group_id)[self.valid_target_columns].sum(), i + 1)
             weight = getattr(self, f'lv{i + 1}_weight')
             lv_scores = pd.concat([weight, lv_scores], axis=1, sort=False).prod(axis=1)
-            group_ids.append(group_id)
             all_scores.append(lv_scores.sum())
+        if VERBOSE:
+            print(np.round(all_scores,3))
+        return np.mean(all_scores)
 
-        return group_ids, all_scores
+    def full_score(self, valid_preds: Union[pd.DataFrame, np.ndarray]) -> float:
+        assert self.valid_df[self.valid_target_columns].shape == valid_preds.shape
+
+        if isinstance(valid_preds, np.ndarray):
+            valid_preds = pd.DataFrame(valid_preds, columns=self.valid_target_columns)
+
+        valid_preds = pd.concat([self.valid_df[self.id_columns], valid_preds], axis=1, sort=False)
+
+        all_scores = []
+        for i, group_id in enumerate(self.group_ids):
+            lv_scores = self.rmsse(valid_preds.groupby(group_id)[self.valid_target_columns].sum(), i + 1)
+            weight = getattr(self, f'lv{i + 1}_weight')
+            lv_scores = pd.concat([weight, lv_scores], axis=1, sort=False).prod(axis=1)
+            all_scores.append(lv_scores.sum())
+        print(np.round(all_scores,3))
+        return np.mean(all_scores)
+
+# WRMSSE for LightGBM
+# https://www.kaggle.com/kyakovlev/m5-custom-validation
+class WRMSSEForLightGBM(WRMSSEEvaluator):
+
+    def feval(self, preds, dtrain):
+        preds = preds.reshape(self.valid_df[self.valid_target_columns].shape, order='F') #.transpose()
+        score = self.score(preds)
+        return 'WRMSSE', score, False
+
+    def full_feval(self, preds, dtrain):
+        preds = preds.reshape(self.valid_df[self.valid_target_columns].shape, order='F') #.transpose()
+        score = self.full_score(preds)
+        return 'WRMSSE', score, False
+
+# get evaluator for cross validation
+def get_evaluators():
+    # load csv files
+    df = pd.read_csv('../input/sales_train_evaluation.csv')
+    calendar = pd.read_csv('../input/calendar.csv')
+    prices = pd.read_csv('../input/sell_prices.csv')
+
+    lgb_evaluators = []
+
+    # fold1
+    df_train1 = df.iloc[:, :-28]
+    df_valid1 = df.iloc[:, -28:]
+    evaluator1 = WRMSSEForLightGBM(df_train1, df_valid1, calendar, prices)
+    lgb_evaluators.append(evaluator1)
+    del df_train1, df_valid1
+
+    # fold2
+    df_train2 = df.iloc[:, :-28*2]
+    df_valid2 = df.iloc[:, -28*2:-28]
+    evaluator2 = WRMSSEForLightGBM(df_train2, df_valid2, calendar, prices)
+    lgb_evaluators.append(evaluator2)
+    del df_train2, df_valid2
+
+    # fold3
+    df_train3 = df.iloc[:, :-365]
+    df_valid3 = df.iloc[:, -365:-365+28]
+    evaluator3 = WRMSSEForLightGBM(df_train3, df_valid3, calendar, prices)
+    lgb_evaluators.append(evaluator3)
+    del df_train3, df_valid3
+
+    return lgb_evaluators
 
 # calc cv score
 def calc_score_cv(oof,end_train=1941):
@@ -125,19 +192,19 @@ def calc_score_cv(oof,end_train=1941):
     df_train1 = df.iloc[:, :-28]
     df_valid1 = df.iloc[:, -28:]
     evaluator1 = WRMSSEEvaluator(df_train1, df_valid1, calendar, prices)
-    groups, scores1 = evaluator1.score(oof[cols_valid1])
+    score1 = evaluator1.score(oof[cols_valid1])
 
     df_train2 = df.iloc[:, :-28*2]
     df_valid2 = df.iloc[:, -28*2:-28]
     evaluator2 = WRMSSEEvaluator(df_train2, df_valid2, calendar, prices)
-    groups, scores2 = evaluator2.score(oof[cols_valid2])
+    score2 = evaluator2.score(oof[cols_valid2])
 
     df_train3 = df.iloc[:, :-365]
     df_valid3 = df.iloc[:, -365:-365+28]
     evaluator3 = WRMSSEEvaluator(df_train3, df_valid3, calendar, prices)
-    groups, scores3 = evaluator3.score(oof[cols_valid3])
+    score3 = evaluator3.score(oof[cols_valid3])
 
     # get scores
-    scores = [np.mean(scores1),np.mean(scores2),np.mean(scores3)]
+    scores = [score1,score2,score3]
 
     return scores
