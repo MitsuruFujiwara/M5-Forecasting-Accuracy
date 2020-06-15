@@ -69,7 +69,9 @@ def kfold_lightgbm(train_df, test_df, num_folds):
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
 
         # target encoding
-        cols_encoding=['item_id','cat_id','dept_id','store_id','state_id']
+        cols_encoding=['item_id','cat_id','dept_id','store_id','state_id',
+                       'item_id_store_id','item_id_state_id','dept_id_store_id',
+                       'dept_id_state_id']
         train_x, valid_x, enc_cols = target_encoding(train_x,valid_x,train_y,cols_encoding)
 
         # save validation indexes
@@ -101,7 +103,7 @@ def kfold_lightgbm(train_df, test_df, num_folds):
                 'seed':326,
                 'bagging_seed':326,
                 'drop_seed':326,
-                'num_threads':-1
+#                'num_threads':-1
                 }
 
         # train model
