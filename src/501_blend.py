@@ -21,13 +21,13 @@ warnings.filterwarnings('ignore')
 
 def main():
     # load submission files
-    sub1 = pd.read_csv('../output/submission_lgbm_28days.csv',index_col=0) # 0.61462
-    sub2 = pd.read_csv('../output/submission_cat_id.csv',index_col=0) # 0.62038
-    sub3 = pd.read_csv('../output/submission_cat_id_group_k_fold.csv',index_col=0) # 0.59688
-    sub4 = pd.read_csv('../output/submission_weekly.csv',index_col=0) # 0.59736
-    sub5 = pd.read_csv('../output/submission_lgbm_group_k_fold.csv',index_col=0) # 0.64584
-    sub6 = pd.read_csv('../output/submission_weekly_group_k_fold.csv',index_col=0) # 0.62186
-    sub7 = pd.read_csv('../output/submission_holiday.csv',index_col=0) # 0.60812
+    sub1 = pd.read_csv('../output/submission_lgbm_28days.csv') # 0.61462
+    sub2 = pd.read_csv('../output/submission_cat_id.csv') # 0.62038
+    sub3 = pd.read_csv('../output/submission_cat_id_group_k_fold.csv') # 0.59688
+    sub4 = pd.read_csv('../output/submission_weekly.csv') # 0.59736
+    sub5 = pd.read_csv('../output/submission_lgbm_group_k_fold.csv') # 0.64584
+    sub6 = pd.read_csv('../output/submission_weekly_group_k_fold.csv') # 0.62186
+    sub7 = pd.read_csv('../output/submission_holiday.csv') # 0.60812
 
     # load oof files
     oof1 = pd.read_csv('../output/oof_lgbm_cv_28days_pivot.csv')
@@ -83,9 +83,9 @@ def main():
     oof2 = pd.melt(oof2,id_vars='id',var_name='d',value_name='oof2')
     oof3 = pd.melt(oof3,id_vars='id',var_name='d',value_name='oof3')
     oof4 = pd.melt(oof4,id_vars='id',var_name='d',value_name='oof4')
-    oof5 = pd.melt(oof5,id_vars='id',var_name='d',value_name='oof4')
-    oof6 = pd.melt(oof6,id_vars='id',var_name='d',value_name='oof4')
-    oof7 = pd.melt(oof7,id_vars='id',var_name='d',value_name='oof4')
+    oof5 = pd.melt(oof5,id_vars='id',var_name='d',value_name='oof5')
+    oof6 = pd.melt(oof6,id_vars='id',var_name='d',value_name='oof6')
+    oof7 = pd.melt(oof7,id_vars='id',var_name='d',value_name='oof7')
 
     # aggregate oof
     df = df.merge(oof1, on=['id','d'],how='left')
@@ -117,7 +117,7 @@ def main():
     df.loc[:,'oof'] = df['oof'].where(df['oof']>0,0)
 
     # to pivot
-    sub = sub[['id','d','oof']].pivot(index='id', columns='d', values='demand').reset_index()
+    sub = sub[['id','d','demand']].pivot(index='id', columns='d', values='demand').reset_index()
     oof = df[['id','d','oof']].pivot(index='id', columns='d', values='oof').reset_index()
 
     # calc out of fold WRMSSE score
