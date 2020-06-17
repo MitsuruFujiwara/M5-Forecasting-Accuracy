@@ -13,12 +13,10 @@ import warnings
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from glob import glob
-from sklearn.model_selection import TimeSeriesSplit, KFold, StratifiedKFold, GroupKFold
 from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils_lag import target_encoding
 
 #==============================================================================
 # Train LightGBM with 7days lag
@@ -51,15 +49,11 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
 def train_lightgbm(train_df,test_df):
     print('Starting LightGBM. Train shape: {}'.format(train_df.shape))
 
-    # target endcoding
-    cols_encoding=['item_id','cat_id','dept_id','store_id','state_id']
-    train_df, test_df, enc_cols = target_encoding(train_df,test_df,train_df['demand'],cols_encoding)
-
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
-    feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED] + enc_cols
+    feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
     # set data structure
     lgb_train = lgb.Dataset(train_df[feats],
@@ -162,9 +156,6 @@ def main(is_eval=False):
         # use selected features
         df = df[configs['features']]
 
-        # drop old data
-        df = df[df['date']>'2014-04-25']
-
         # split train & test
         #=======================================================================
         # 2011-01-29 ~ 2016-04-24 : d_1    ~ d_1913
@@ -173,10 +164,10 @@ def main(is_eval=False):
         #=======================================================================
 
         if is_eval:
-            train_df = df[df['date']<'2016-05-23']
+            train_df = df[(df['date']<'2016-05-23')&(df['date']>='2014-05-23')]
             test_df = df[df['date']>='2016-05-23']
         else:
-            train_df = df[df['date']<'2016-04-25']
+            train_df = df[(df['date']<'2016-04-25')&(df['date']>='2014-04-25')]
             test_df = df[df['date']>='2016-04-25']
 
         del df

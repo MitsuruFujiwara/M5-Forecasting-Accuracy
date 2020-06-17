@@ -39,8 +39,16 @@ def main():
     # make lag features
     df = make_lags(df,28)
 
+    # add categorical features
+    df['item_id_store_id'] = df['item_id']+'_'+df['store_id']
+    df['item_id_state_id'] = df['item_id']+'_'+df['state_id']
+    df['dept_id_store_id'] = df['dept_id']+'_'+df['store_id']
+    df['dept_id_state_id'] = df['dept_id']+'_'+df['state_id']
+
     # label encoding
-    cols_string = ['item_id','dept_id','cat_id','store_id','state_id']
+    cols_string = ['item_id','dept_id','cat_id','store_id','state_id',
+                   'item_id_store_id','item_id_state_id','dept_id_store_id',
+                   'dept_id_state_id']
     for c in cols_string:
         df[c], _ = pd.factorize(df[c])
         df[c].replace(-1,np.nan,inplace=True)

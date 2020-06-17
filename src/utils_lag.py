@@ -37,8 +37,6 @@ def make_lags(df,days=28):
     for i in tqdm([7,14,21,28]):
         df[f'iz_zero_ratio_{days}_{i}'] = df_grouped_is_zero.transform(lambda x: x.shift(days).rolling(i).mean())
 
-    # TODO: days after last sales
-
     del df_grouped_is_zero
     gc.collect()
 

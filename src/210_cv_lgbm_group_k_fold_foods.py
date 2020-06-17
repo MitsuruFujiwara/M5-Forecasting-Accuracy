@@ -16,7 +16,6 @@ from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import NUM_FOLDS, FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils_lag import target_encoding
 
 #==============================================================================
 # Train LightGBM with group k-fold (foods)
@@ -65,10 +64,6 @@ def kfold_lightgbm(train_df, test_df, num_folds):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['demand'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['demand'].iloc[valid_idx]
 
-        # target encoding
-        cols_encoding=['item_id','dept_id','store_id','state_id']
-        train_x, valid_x, enc_cols = target_encoding(train_x,valid_x,train_y,cols_encoding)
-
         # set data structure
         lgb_train = lgb.Dataset(train_x,
                                 label=train_y,
@@ -114,10 +109,11 @@ def kfold_lightgbm(train_df, test_df, num_folds):
 
         # save predictions
         oof_preds[valid_idx] = reg.predict(valid_x, num_iteration=reg.best_iteration)
+        sub_preds += reg.predict(test_df[feats], num_iteration=reg.best_iteration) / folds.n_splits
 
         # save feature importances
         fold_importance_df = pd.DataFrame()
-        fold_importance_df['feature'] = feats+enc_cols
+        fold_importance_df['feature'] = feats
         fold_importance_df['importance'] = np.log1p(reg.feature_importance(importance_type='gain', iteration=reg.best_iteration))
         fold_importance_df['fold'] = n_fold + 1
         feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
@@ -134,16 +130,6 @@ def kfold_lightgbm(train_df, test_df, num_folds):
     # Full RMSE score and LINE Notify
     full_rmse = rmse(train_df['demand'], oof_preds)
     line_notify('Full RMSE score %.6f' % full_rmse)
-
-    # make submission
-    print('making submission...')
-    cols_encoding=['item_id','dept_id','store_id','state_id']
-    train_df, test_df, enc_cols = target_encoding(train_df,test_df,train_df['demand'],cols_encoding)
-    for i in tqdm(range(num_folds)):
-        # load model
-        reg = lgb.Booster(model_file=f'../output/lgbm_group_k_fold_foods_{i}.txt')
-        # save preds
-        sub_preds += reg.predict(test_df[feats+enc_cols], num_iteration=reg.best_iteration)/num_folds
 
     # save out of fold prediction
     train_df.loc[:,'demand'] = oof_preds

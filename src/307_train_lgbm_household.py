@@ -18,7 +18,6 @@ from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
-from utils_lag import target_encoding
 
 #==============================================================================
 # Train LightGBM with household
@@ -50,10 +49,6 @@ def display_importances(feature_importance_df_, outputpath, csv_outputpath):
 # Train LightGBM
 def train_lightgbm(train_df,test_df):
     print('Starting LightGBM. Train shape: {}'.format(train_df.shape))
-
-    # target endcoding
-    cols_encoding=['item_id','dept_id','store_id','state_id']
-    train_df, test_df, enc_cols = target_encoding(train_df,test_df,train_df['demand'],cols_encoding)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -157,10 +152,10 @@ def main(is_eval=False):
         #=======================================================================
 
         if is_eval:
-            train_df = df[df['date']<'2016-05-23']
+            train_df = df[(df['date']<'2016-05-23')&(df['date']>='2014-05-23')]
             test_df = df[df['date']>='2016-05-23']
         else:
-            train_df = df[df['date']<'2016-04-25']
+            train_df = df[(df['date']<'2016-04-25')&(df['date']>='2014-04-25')]
             test_df = df[df['date']>='2016-04-25']
 
         del df

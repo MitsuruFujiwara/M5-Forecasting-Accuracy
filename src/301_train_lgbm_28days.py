@@ -13,7 +13,6 @@ import warnings
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from glob import glob
-from sklearn.model_selection import TimeSeriesSplit, KFold, StratifiedKFold, GroupKFold
 from tqdm import tqdm
 
 from utils import line_notify, to_json, rmse, save2pkl, submit
@@ -78,7 +77,7 @@ def train_lightgbm(train_df,test_df):
             'seed':326,
             'bagging_seed':326,
             'drop_seed':326,
-#            'num_threads':-1
+            'num_threads':-1
             }
 
     # train model
@@ -157,9 +156,6 @@ def main(is_eval=False):
         # use selected features
         df = df[configs['features']]
 
-        # drop old data
-        df = df[df['date']>'2014-04-25']
-
         # split train & test
         #=======================================================================
         # 2011-01-29 ~ 2016-04-24 : d_1    ~ d_1913
@@ -168,10 +164,10 @@ def main(is_eval=False):
         #=======================================================================
 
         if is_eval:
-            train_df = df[df['date']<'2016-05-23']
+            train_df = df[(df['date']<'2016-05-23')&(df['date']>='2014-05-23')]
             test_df = df[df['date']>='2016-05-23']
         else:
-            train_df = df[df['date']<'2016-04-25']
+            train_df = df[(df['date']<'2016-04-25')&(df['date']>='2014-04-25')]
             test_df = df[df['date']>='2016-04-25']
 
         del df

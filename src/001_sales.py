@@ -86,9 +86,8 @@ def main(is_eval=False):
 
     # add is zero flag
     df['is_zero'] = (df['demand']==0).astype(int)
-    
+
     # save pkl
-#    save2pkl('../feats/sales.pkl', df)
     to_pickles(df, '../feats/sales', split_size=3)
 
     # LINE notify
