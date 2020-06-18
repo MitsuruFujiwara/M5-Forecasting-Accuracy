@@ -25,7 +25,7 @@ def main():
     sub2 = pd.read_csv('../output/submission_cat_id.csv') # 0.62038
     sub3 = pd.read_csv('../output/submission_cat_id_group_k_fold.csv') # 0.59688
     sub4 = pd.read_csv('../output/submission_weekly.csv') # 0.59736
-    sub5 = pd.read_csv('../output/submission_lgbm_group_k_fold.csv') # 0.64584
+    sub5 = pd.read_csv('../output/submission_lgbm_group_k_fold_28days.csv') # 0.64584
     sub6 = pd.read_csv('../output/submission_weekly_group_k_fold.csv') # 0.62186
     sub7 = pd.read_csv('../output/submission_holiday.csv') # 0.60812
 #    sub8 = pd.read_csv('../output/submission_holiday_group_k_fold.csv') # 0.60812

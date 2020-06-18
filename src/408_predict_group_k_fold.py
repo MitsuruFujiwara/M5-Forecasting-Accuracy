@@ -30,7 +30,11 @@ def main():
 
     # to pivot
     print('to pivot...')
+    sub = sub.pivot(index='id', columns='d', values='demand').reset_index()
     oof = oof.pivot(index='id', columns='d', values='demand').reset_index()
+
+    # change columns for submit
+    sub.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
 
     # postprocesssing
     cols_f = [f'F{i}' for i in range(1,29)]
@@ -55,7 +59,7 @@ def main():
     line_notify('{} done. WRMSSE:{}'.format(sys.argv[0],round(score,6)))
 
 if __name__ == '__main__':
-    submission_file_name = '../output/submission_lgbm_group_k_fold.csv'
+    submission_file_name = '../output/submission_lgbm_group_k_fold_28days.csv'
     oof_file_name = '../output/oof_lgbm_group_k_fold_28days.csv'
     oof_file_name_pivot = '../output/oof_lgbm_group_k_fold_pivot.csv'
     main()
