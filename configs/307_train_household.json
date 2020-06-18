@@ -9,6 +9,7 @@
         "d",
         "demand",
         "d_numeric",
+        "is_zero",
         "date",
         "wm_yr_wk",
         "wday",
@@ -79,6 +80,14 @@
         "demand_rolling_min_28_28",
         "demand_rolling_skew_28_28",
         "demand_rolling_kurt_28_28",
+        "iz_zero_ratio_28_7",
+        "iz_zero_ratio_28_14",
+        "iz_zero_ratio_28_21",
+        "iz_zero_ratio_28_28",
+        "item_id_store_id",
+        "item_id_state_id",
+        "dept_id_store_id",
+        "dept_id_state_id",
         "shift_price_t1",
         "price_change_t1",
         "rolling_price_max_t365",
@@ -89,9 +98,9 @@
         "price_momentum_y"
     ],
     "num_boost_round": [
-        161,
-        195,
-        123
+        65,
+        162,
+        104
     ],
-    "rmse": 1.4416573332868876
+    "rmse": 1.442008459104775
 }
