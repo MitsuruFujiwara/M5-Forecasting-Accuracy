@@ -64,7 +64,7 @@ def main():
     print(f'scores: {scores}')
 
     # submission by API
-#    submit(submission_file_name, comment='model401 cv: %.6f' % score)
+    submit(submission_file_name, comment='model408 cv: %.6f' % score)
 
     # LINE notify
     line_notify('{} done. WRMSSE:{}'.format(sys.argv[0],round(score,6)))

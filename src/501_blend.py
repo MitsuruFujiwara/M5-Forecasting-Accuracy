@@ -133,8 +133,8 @@ def main():
     # change column names
     sub1.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
 
-    # drop
-    sub2[preds_valid.id.str.contains("validation")]
+    # drop validation rows
+    sub2 = sub2[sub2.id.str.contains('evaluation')]
 
     # replace test1 id
     sub1['id']= sub1['id'].str.replace('_evaluation','_validation')
