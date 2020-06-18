@@ -28,6 +28,7 @@ def main():
     sub5 = pd.read_csv('../output/submission_lgbm_group_k_fold.csv') # 0.64584
     sub6 = pd.read_csv('../output/submission_weekly_group_k_fold.csv') # 0.62186
     sub7 = pd.read_csv('../output/submission_holiday.csv') # 0.60812
+#    sub8 = pd.read_csv('../output/submission_holiday_group_k_fold.csv') # 0.60812
 
     # load oof files
     oof1 = pd.read_csv('../output/oof_lgbm_cv_28days_pivot.csv')
@@ -37,6 +38,7 @@ def main():
     oof5 = pd.read_csv('../output/oof_lgbm_group_k_fold_pivot.csv')
     oof6 = pd.read_csv('../output/oof_lgbm_weekly_group_k_fold_pivot.csv')
     oof7 = pd.read_csv('../output/oof_holiday_pivot.csv')
+#    oof8 = pd.read_csv('../output/oof_holiday_group_k_fold.csv')
 
     # load target data & sample submission
     df = pd.read_csv('../input/sales_train_evaluation.csv')

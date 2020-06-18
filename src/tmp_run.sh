@@ -9,10 +9,10 @@ python 001_sales.py
 python 002_calendar.py
 python 003_sell_prices.py
 
-python 101_aggregation_28days.py
-python 102_aggregation_21days.py
-python 103_aggregation_14days.py
-python 104_aggregation_7days.py
-python 106_aggregation_foods.py
-python 107_aggregation_household.py
-python 108_aggregation_hobbies.py
+python 109_aggregation_weekday.py
+python 110_aggregation_holiday.py
+
+python 219_cv_lgbm_group_k_fold_weekday.py
+python 220_cv_lgbm_group_k_fold_holiday.py
+
+python 411_predict_holiday_group_k_fold.py
