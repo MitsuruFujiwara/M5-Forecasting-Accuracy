@@ -17,8 +17,8 @@ python 104_aggregation_7days.py
 python 106_aggregation_foods.py
 python 107_aggregation_household.py
 python 108_aggregation_hobbies.py
-python 109_aggregation_weekday.py
-python 110_aggregation_holiday.py
+#python 109_aggregation_weekday.py
+#python 110_aggregation_holiday.py
 
 python 201_cv_lgbm_28days.py
 python 202_cv_lgbm_21days.py
@@ -38,8 +38,8 @@ python 215_cv_lgbm_group_k_fold_14days.py
 python 216_cv_lgbm_group_k_fold_7days.py
 #python 217_cv_lgbm_weekday.py
 #python 218_cv_lgbm_holiday.py
-python 219_cv_lgbm_group_k_fold_weekday.py
-python 220_cv_lgbm_group_k_fold_holiday.py
+#python 219_cv_lgbm_group_k_fold_weekday.py
+#python 220_cv_lgbm_group_k_fold_holiday.py
 
 python 301_train_lgbm_28days.py
 python 302_train_lgbm_21days.py
@@ -52,13 +52,13 @@ python 304_train_lgbm_7days.py
 #python 309_train_lgbm_weekday.py
 #python 310_train_lgbm_holiday.py
 
-python 401_predict_28days.py
-python 404_predict_cat_id.py
+#python 401_predict_28days.py
+#python 404_predict_cat_id.py
 python 405_predict_cat_id_group_k_fold.py
 python 407_predict_weekly.py
 python 408_predict_group_k_fold.py
 python 409_predict_weekly_group_k_fold.py
-python 410_predict_holiday.py
-python 411_predict_holiday_group_k_fold.py
+#python 410_predict_holiday.py
+#python 411_predict_holiday_group_k_fold.py
 
 python 501_blend.py
