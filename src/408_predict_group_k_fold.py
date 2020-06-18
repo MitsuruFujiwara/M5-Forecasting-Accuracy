@@ -30,7 +30,11 @@ def main():
 
     # to pivot
     print('to pivot...')
+    sub = sub.pivot(index='id', columns='d', values='demand').reset_index()
     oof = oof.pivot(index='id', columns='d', values='demand').reset_index()
+
+    # change columns for submit
+    sub.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
 
     # postprocesssing
     cols_f = [f'F{i}' for i in range(1,29)]
