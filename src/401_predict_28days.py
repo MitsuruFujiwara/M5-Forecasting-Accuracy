@@ -24,7 +24,7 @@ warnings.filterwarnings('ignore')
 def main():
     # load submission files
     print('load files...')
-    sub = pd.read_csv(submission_file_name )
+    sub = pd.read_csv(submission_file_name)
 
     # load out of fold files
     oof = pd.read_csv(oof_file_name)

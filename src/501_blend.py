@@ -22,23 +22,23 @@ warnings.filterwarnings('ignore')
 def main():
     # load submission files
     sub1 = pd.read_csv('../output/submission_lgbm_28days.csv') # 0.61462
-    sub2 = pd.read_csv('../output/submission_cat_id.csv') # 0.62038
+#    sub2 = pd.read_csv('../output/submission_cat_id.csv') # 0.62038
     sub3 = pd.read_csv('../output/submission_cat_id_group_k_fold.csv') # 0.59688
     sub4 = pd.read_csv('../output/submission_weekly.csv') # 0.59736
-    sub5 = pd.read_csv('../output/submission_lgbm_group_k_fold_28days.csv') # 0.64584
+    sub5 = pd.read_csv('../output/submission_lgbm_group_k_fold_28days_pivot.csv') # 0.64584
     sub6 = pd.read_csv('../output/submission_weekly_group_k_fold.csv') # 0.62186
-    sub7 = pd.read_csv('../output/submission_holiday.csv') # 0.60812
-#    sub8 = pd.read_csv('../output/submission_holiday_group_k_fold.csv') # 0.60812
+#    sub7 = pd.read_csv('../output/submission_holiday.csv') # 0.60812
+    sub8 = pd.read_csv('../output/submission_holiday_group_k_fold.csv') # 0.60812
 
     # load oof files
     oof1 = pd.read_csv('../output/oof_lgbm_cv_28days_pivot.csv')
-    oof2 = pd.read_csv('../output/oof_cat_id.csv')
+#    oof2 = pd.read_csv('../output/oof_cat_id.csv')
     oof3 = pd.read_csv('../output/oof_cat_id_group_k_fold.csv')
     oof4 = pd.read_csv('../output/oof_lgbm_direct_weekly_pivot.csv')
     oof5 = pd.read_csv('../output/oof_lgbm_group_k_fold_pivot.csv')
     oof6 = pd.read_csv('../output/oof_lgbm_weekly_group_k_fold_pivot.csv')
-    oof7 = pd.read_csv('../output/oof_holiday_pivot.csv')
-#    oof8 = pd.read_csv('../output/oof_holiday_group_k_fold.csv')
+#    oof7 = pd.read_csv('../output/oof_holiday_pivot.csv')
+    oof8 = pd.read_csv('../output/oof_holiday_group_k_fold.csv')
 
     # load target data & sample submission
     df = pd.read_csv('../input/sales_train_evaluation.csv')
@@ -53,66 +53,69 @@ def main():
     # drop non-validation columns
     df = df[['id']+cols_valid3+cols_valid2+cols_valid1]
     oof1 = oof1[['id']+cols_valid3+cols_valid2+cols_valid1]
-    oof2 = oof2[['id']+cols_valid3+cols_valid2+cols_valid1]
+#    oof2 = oof2[['id']+cols_valid3+cols_valid2+cols_valid1]
     oof3 = oof3[['id']+cols_valid3+cols_valid2+cols_valid1]
     oof4 = oof4[['id']+cols_valid3+cols_valid2+cols_valid1]
     oof5 = oof5[['id']+cols_valid3+cols_valid2+cols_valid1]
     oof6 = oof6[['id']+cols_valid3+cols_valid2+cols_valid1]
-    oof7 = oof7[['id']+cols_valid3+cols_valid2+cols_valid1]
+#    oof7 = oof7[['id']+cols_valid3+cols_valid2+cols_valid1]
+    oof8 = oof8[['id']+cols_valid3+cols_valid2+cols_valid1]
 
     # reshape sub
     sample_sub = pd.melt(sample_sub,id_vars='id',var_name='d',value_name='demand')
     sub1 = pd.melt(sub1,id_vars='id',var_name='d',value_name='sub1')
-    sub2 = pd.melt(sub2,id_vars='id',var_name='d',value_name='sub2')
+#    sub2 = pd.melt(sub2,id_vars='id',var_name='d',value_name='sub2')
     sub3 = pd.melt(sub3,id_vars='id',var_name='d',value_name='sub3')
     sub4 = pd.melt(sub4,id_vars='id',var_name='d',value_name='sub4')
     sub5 = pd.melt(sub5,id_vars='id',var_name='d',value_name='sub5')
     sub6 = pd.melt(sub6,id_vars='id',var_name='d',value_name='sub6')
-    sub7 = pd.melt(sub7,id_vars='id',var_name='d',value_name='sub7')
+#    sub7 = pd.melt(sub7,id_vars='id',var_name='d',value_name='sub7')
+    sub8 = pd.melt(sub8,id_vars='id',var_name='d',value_name='sub8')
 
     # aggregate sub
     sub = sample_sub.merge(sub1, on=['id','d'],how='left')
-    sub = sub.merge(sub2, on=['id','d'],how='left')
+#    sub = sub.merge(sub2, on=['id','d'],how='left')
     sub = sub.merge(sub3, on=['id','d'],how='left')
     sub = sub.merge(sub4, on=['id','d'],how='left')
     sub = sub.merge(sub5, on=['id','d'],how='left')
     sub = sub.merge(sub6, on=['id','d'],how='left')
-    sub = sub.merge(sub7, on=['id','d'],how='left')
+#    sub = sub.merge(sub7, on=['id','d'],how='left')
+    sub = sub.merge(sub8, on=['id','d'],how='left')
 
     # reshape oof
     df = pd.melt(df,id_vars='id',var_name='d',value_name='demand')
     oof1 = pd.melt(oof1,id_vars='id',var_name='d',value_name='oof1')
-    oof2 = pd.melt(oof2,id_vars='id',var_name='d',value_name='oof2')
+#    oof2 = pd.melt(oof2,id_vars='id',var_name='d',value_name='oof2')
     oof3 = pd.melt(oof3,id_vars='id',var_name='d',value_name='oof3')
     oof4 = pd.melt(oof4,id_vars='id',var_name='d',value_name='oof4')
     oof5 = pd.melt(oof5,id_vars='id',var_name='d',value_name='oof5')
     oof6 = pd.melt(oof6,id_vars='id',var_name='d',value_name='oof6')
-    oof7 = pd.melt(oof7,id_vars='id',var_name='d',value_name='oof7')
+#    oof7 = pd.melt(oof7,id_vars='id',var_name='d',value_name='oof7')
+    oof8 = pd.melt(oof8,id_vars='id',var_name='d',value_name='oof8')
 
     # aggregate oof
     df = df.merge(oof1, on=['id','d'],how='left')
-    df = df.merge(oof2, on=['id','d'],how='left')
+#    df = df.merge(oof2, on=['id','d'],how='left')
     df = df.merge(oof3, on=['id','d'],how='left')
     df = df.merge(oof4, on=['id','d'],how='left')
     df = df.merge(oof5, on=['id','d'],how='left')
     df = df.merge(oof6, on=['id','d'],how='left')
-    df = df.merge(oof7, on=['id','d'],how='left')
+#    df = df.merge(oof7, on=['id','d'],how='left')
+    df = df.merge(oof8, on=['id','d'],how='left')
 
     # calc weights by ridge regression
-    cols_oofs = ['oof1','oof2','oof3','oof4','oof5','oof6','oof7']
+    cols_oofs = ['oof1','oof3','oof4','oof5','oof6','oof8']
     reg = Ridge(alpha=1.0,fit_intercept=False,random_state=326)
     reg.fit(df[cols_oofs],df['demand'])
 
     print('weights: {}'.format(reg.coef_))
 
     # blending
-    sub['demand'] = reg.coef_[0]*sub['sub1']+reg.coef_[1]*sub['sub2']+reg.coef_[2]*sub['sub3'] \
-                  + reg.coef_[3]*sub['sub4']+reg.coef_[4]*sub['sub5']+reg.coef_[5]*sub['sub6'] \
-                  + reg.coef_[6]*sub['sub7']
+    sub['demand'] = reg.coef_[0]*sub['sub1']+reg.coef_[1]*sub['sub3']+reg.coef_[2]*sub['sub4'] \
+                  + reg.coef_[3]*sub['sub5']+reg.coef_[4]*sub['sub6']+reg.coef_[5]*sub['sub8']
 
-    df['oof'] = reg.coef_[0]*df['oof1']+reg.coef_[1]*df['oof2']+reg.coef_[2]*df['oof3'] \
-              + reg.coef_[3]*df['oof4']+reg.coef_[4]*df['oof5']+reg.coef_[5]*df['oof6'] \
-              + reg.coef_[6]*df['oof7']
+    df['oof'] = reg.coef_[0]*df['oof1']+reg.coef_[1]*df['oof3']+reg.coef_[2]*df['oof4'] \
+              + reg.coef_[3]*df['oof5']+reg.coef_[4]*df['oof6']+reg.coef_[5]*df['oof8']
 
     # postprocesssing
     sub.loc[:,'demand'] = sub['demand'].where(sub['demand']>0,0)
@@ -121,6 +124,19 @@ def main():
     # to pivot
     sub = sub[['id','d','demand']].pivot(index='id', columns='d', values='demand').reset_index()
     oof = df[['id','d','oof']].pivot(index='id', columns='d', values='oof').reset_index()
+
+    # split test1 / test2
+    sub1 = oof[['id']+COLS_TEST1]
+    sub2 = sub[['id']+['F' + str(d + 1) for d in range(28)]]
+
+    # change column names
+    sub1.columns = ['id'] + ['F' + str(d + 1) for d in range(28)]
+
+    # replace test1 id
+    sub1['id']= sub1['id'].str.replace('_evaluation','_validation')
+
+    # merge
+    sub = sub1.append(sub2)
 
     # calc out of fold WRMSSE score
     print('calc oof cv scores...')
