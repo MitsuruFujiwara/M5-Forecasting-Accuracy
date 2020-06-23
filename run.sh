@@ -1,5 +1,5 @@
 #!/bin/sh
-cd ../feats
+cd feats
 rm *.feather
 rm *.pkl
 rm sales/*.pkl
