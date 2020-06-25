@@ -93,9 +93,9 @@ def kfold_lightgbm(train_df, test_df, num_folds):
                 'min_data_in_leaf': 2**8-1,
                 'feature_fraction': 0.8,
                 'verbose': -1,
-                'seed':326,
-                'bagging_seed':326,
-                'drop_seed':326,
+                'seed':int(2**n_fold),
+                'bagging_seed':int(2**n_fold),
+                'drop_seed':int(2**n_fold),
                 'num_threads':-1
                 }
 
