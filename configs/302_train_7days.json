@@ -98,6 +98,6 @@
         "price_momentum_m",
         "price_momentum_y"
     ],
-    "num_boost_round": 218,
-    "rmse": 2.133547533812623
+    "num_boost_round": 324,
+    "rmse": 2.1362873240577893
 }

@@ -13,7 +13,7 @@ demand_rolling_kurt_7_21,10.794585905977998,1
 demand_rolling_kurt_7_28,11.23648958353545,1
 demand_rolling_kurt_7_7,10.740922548728896,1
 demand_rolling_max_7_14,9.547818674521745,1
-demand_rolling_max_7_21,9.868790719424357,1
+demand_rolling_max_7_21,9.858037416820448,1
 demand_rolling_max_7_28,12.215366430493452,1
 demand_rolling_max_7_7,10.730095581373728,1
 demand_rolling_mean_7_14,16.757364471567218,1
@@ -25,7 +25,7 @@ demand_rolling_min_7_21,8.48222466974211,1
 demand_rolling_min_7_28,9.131991734968075,1
 demand_rolling_min_7_7,9.176206064322571,1
 demand_rolling_skew_7_14,11.06013511933511,1
-demand_rolling_skew_7_21,11.588603689924721,1
+demand_rolling_skew_7_21,11.590517452212717,1
 demand_rolling_skew_7_28,12.435083040036972,1
 demand_rolling_skew_7_7,11.494167365478688,1
 demand_rolling_std_7_14,13.367901793309956,1
