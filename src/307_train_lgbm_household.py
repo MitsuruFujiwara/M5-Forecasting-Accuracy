@@ -20,7 +20,7 @@ from utils import line_notify, to_json, rmse, save2pkl, submit
 from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
 
 #==============================================================================
-# Train LightGBM with household
+# Train LightGBM (household)
 #==============================================================================
 
 warnings.filterwarnings('ignore')

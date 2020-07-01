@@ -14,7 +14,7 @@ from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2
 from utils_lag import make_lags
 
 #==============================================================================
-# make prediction with diff data
+# Prediction with diff data
 #==============================================================================
 
 warnings.filterwarnings('ignore')

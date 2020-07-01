@@ -15,7 +15,7 @@ from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2
 from utils_score import calc_score_cv
 
 #==============================================================================
-# weekly prediction
+# Prediction weekly
 #==============================================================================
 
 warnings.filterwarnings('ignore')

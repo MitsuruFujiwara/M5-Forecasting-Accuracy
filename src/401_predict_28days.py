@@ -16,7 +16,7 @@ from utils_lag import make_lags
 from utils_score import calc_score_cv
 
 #==============================================================================
-# direct 28days prediction
+# Direct 28days prediction
 #==============================================================================
 
 warnings.filterwarnings('ignore')

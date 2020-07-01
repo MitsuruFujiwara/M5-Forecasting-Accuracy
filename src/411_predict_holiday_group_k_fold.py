@@ -16,7 +16,7 @@ from utils_lag import make_lags
 from utils_score import calc_score_cv
 
 #==============================================================================
-# prediction by cat_id
+# Prediction by holiday with group k-fold
 #==============================================================================
 
 warnings.filterwarnings('ignore')

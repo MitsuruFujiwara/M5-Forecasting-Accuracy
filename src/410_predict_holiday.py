@@ -16,7 +16,7 @@ from utils_lag import make_lags
 from utils_score import calc_score_cv
 
 #==============================================================================
-# prediction by holiday
+# Prediction by holiday
 #==============================================================================
 
 warnings.filterwarnings('ignore')

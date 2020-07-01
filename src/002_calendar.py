@@ -14,7 +14,7 @@ from math import ceil
 from utils import save2pkl, line_notify, reduce_mem_usage
 
 #===============================================================================
-# preprocess sell calendar
+# preprocess calendar
 #===============================================================================
 
 warnings.simplefilter(action='ignore')

@@ -15,7 +15,7 @@ from utils import COLS_TEST1, COLS_TEST2
 from utils_score import calc_score_cv
 
 #==============================================================================
-# blending with ridge regression
+# Blending
 #==============================================================================
 
 warnings.filterwarnings('ignore')

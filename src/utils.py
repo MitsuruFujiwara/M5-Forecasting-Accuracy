@@ -15,6 +15,10 @@ from sklearn.model_selection import KFold
 from time import time, sleep
 from tqdm import tqdm
 
+#==============================================================================
+# utils
+#==============================================================================
+
 NUM_FOLDS = 5
 
 FEATS_EXCLUDED = ['demand','index','id','d','date','is_test','wm_yr_wk','d_numeric','key_kf','is_zero']

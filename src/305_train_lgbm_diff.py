@@ -21,7 +21,7 @@ from utils import FEATS_EXCLUDED, COLS_TEST1, COLS_TEST2, CAT_COLS
 from utils import custom_asymmetric_train, custom_asymmetric_valid
 
 #==============================================================================
-# Train LightGBM with 28days lag
+# Train LightGBM (diff)
 #==============================================================================
 
 warnings.filterwarnings('ignore')
