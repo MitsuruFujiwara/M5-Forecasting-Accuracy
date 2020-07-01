@@ -2,7 +2,7 @@
 This repository is my solition for kaggle M5 Forecasting Accuracy. See [competition website](https://www.kaggle.com/c/m5-forecasting-accuracy) for the details.
 
 ### Result
-- Local cv score: 0.56874
+- Local cv score: 0.567146
 - Private LB score: 0.60101
 
 ### Features
@@ -19,10 +19,10 @@ This repository is my solition for kaggle M5 Forecasting Accuracy. See [competit
 ### Models
 LightGBM with tweedie loss. Blending 4 models with different cv strategies (TS or group) and different data split (by category or by week or no split).
 
-|name|cv|split|fold1|fold2|fold3|avg|weight|
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-|Weekly Group|Group|Week|0.60118|0.50369|0.65736|0.58741|0.4175|
-|Weekly TS|TS|Week|0.61178|0.53015|0.68283|0.60825|0.2320|
-|Category Group|Group|Category|0.62392|0.48934|0.69283|0.60203|0.2052|
-|No split Group|Group|-|0.60705|0.49313|0.66869|0.58963|0.1732|
-|Blend|-|-|0.54787|0.51075|0.64282|0.56715|-|
+|name|cv|split|fold1|fold2|fold3|avg|weight|private|
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+|Weekly Group|Group|Week|0.60118|0.50369|0.65736|0.58741|0.4175|0.57412|
+|Weekly TS|TS|Week|0.61178|0.53015|0.68283|0.60825|0.2320|0.60082|
+|Category Group|Group|Category|0.62392|0.48934|0.69283|0.60203|0.2052|0.54479|
+|No split Group|Group|-|0.60705|0.49313|0.66869|0.58963|0.1732|0.58869|
+|Blend|-|-|0.54787|0.51075|0.64282|0.56715|-|0.60101|
