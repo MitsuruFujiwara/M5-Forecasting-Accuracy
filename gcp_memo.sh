@@ -19,10 +19,12 @@ mv kaggle.json /home/fujiwara52jp/.kaggle
 chmod 600 /home/fujiwara52jp/.kaggle/kaggle.json
 
 # githubのリポジトリをクローン
-git clone https://github.com/MitsuruFujiwara/M5-Forecasting-Accuracy.git
+git clone -b late_submission https://github.com/MitsuruFujiwara/M5-Forecasting-Accuracy.git
 cd M5-Forecasting-Accuracy/
 sh init.sh
 
 # LINE通知用のトークンを所定の位置に移動（任意）
 cd ..
 mv line_token.txt M5-Forecasting-Accuracy/input/
+
+git push origin late_submission

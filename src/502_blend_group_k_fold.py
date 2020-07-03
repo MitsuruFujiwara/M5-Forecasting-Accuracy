@@ -27,7 +27,7 @@ def main():
     sub3 = pd.read_csv('../output/submission_cat_id_group_k_fold.csv') # 0.59688
 #    sub4 = pd.read_csv('../output/submission_weekly.csv') # 0.59736
     sub5 = pd.read_csv('../output/submission_lgbm_group_k_fold_28days_pivot.csv') # 0.64584
-    sub6 = pd.read_csv('../output/submission_weekly_group_k_fold.csv') # 0.62186
+#    sub6 = pd.read_csv('../output/submission_weekly_group_k_fold.csv') # 0.62186
 #    sub7 = pd.read_csv('../output/submission_holiday.csv') # 0.60812
     sub8 = pd.read_csv('../output/submission_holiday_group_k_fold.csv') # 0.60812
 
@@ -37,7 +37,7 @@ def main():
     oof3 = pd.read_csv('../output/oof_cat_id_group_k_fold.csv')
 #    oof4 = pd.read_csv('../output/oof_lgbm_direct_weekly_pivot.csv')
     oof5 = pd.read_csv('../output/oof_lgbm_group_k_fold_pivot.csv')
-    oof6 = pd.read_csv('../output/oof_lgbm_weekly_group_k_fold_pivot.csv')
+#    oof6 = pd.read_csv('../output/oof_lgbm_weekly_group_k_fold_pivot.csv')
 #    oof7 = pd.read_csv('../output/oof_holiday_pivot.csv')
     oof8 = pd.read_csv('../output/oof_holiday_group_k_fold.csv')
 
@@ -69,7 +69,7 @@ def main():
     sub3 = pd.melt(sub3,id_vars='id',var_name='d',value_name='sub3')
 #    sub4 = pd.melt(sub4,id_vars='id',var_name='d',value_name='sub4')
     sub5 = pd.melt(sub5,id_vars='id',var_name='d',value_name='sub5')
-    sub6 = pd.melt(sub6,id_vars='id',var_name='d',value_name='sub6')
+#    sub6 = pd.melt(sub6,id_vars='id',var_name='d',value_name='sub6')
 #    sub7 = pd.melt(sub7,id_vars='id',var_name='d',value_name='sub7')
     sub8 = pd.melt(sub8,id_vars='id',var_name='d',value_name='sub8')
 
@@ -79,7 +79,7 @@ def main():
 #    sub = sub.merge(sub3, on=['id','d'],how='left')
 #    sub = sub.merge(sub4, on=['id','d'],how='left')
     sub = sub.merge(sub5, on=['id','d'],how='left')
-    sub = sub.merge(sub6, on=['id','d'],how='left')
+#    sub = sub.merge(sub6, on=['id','d'],how='left')
 #    sub = sub.merge(sub7, on=['id','d'],how='left')
     sub = sub.merge(sub8, on=['id','d'],how='left')
 
@@ -90,7 +90,7 @@ def main():
     oof3 = pd.melt(oof3,id_vars='id',var_name='d',value_name='oof3')
 #    oof4 = pd.melt(oof4,id_vars='id',var_name='d',value_name='oof4')
     oof5 = pd.melt(oof5,id_vars='id',var_name='d',value_name='oof5')
-    oof6 = pd.melt(oof6,id_vars='id',var_name='d',value_name='oof6')
+#    oof6 = pd.melt(oof6,id_vars='id',var_name='d',value_name='oof6')
 #    oof7 = pd.melt(oof7,id_vars='id',var_name='d',value_name='oof7')
     oof8 = pd.melt(oof8,id_vars='id',var_name='d',value_name='oof8')
 
@@ -100,23 +100,21 @@ def main():
 #    df = df.merge(oof3, on=['id','d'],how='left')
 #    df = df.merge(oof4, on=['id','d'],how='left')
     df = df.merge(oof5, on=['id','d'],how='left')
-    df = df.merge(oof6, on=['id','d'],how='left')
+#    df = df.merge(oof6, on=['id','d'],how='left')
 #    df = df.merge(oof7, on=['id','d'],how='left')
     df = df.merge(oof8, on=['id','d'],how='left')
 
     # calc weights by ridge regression
-    cols_oofs = ['oof3','oof5','oof6','oof8']
+    cols_oofs = ['oof3','oof5','oof8']
     reg = Ridge(alpha=1.0,fit_intercept=False,random_state=326)
     reg.fit(df[cols_oofs],df['demand'])
 
     print('weights: {}'.format(reg.coef_))
 
     # blending
-    sub['demand'] = reg.coef_[0]*sub['sub3']+reg.coef_[1]*sub['sub5']+reg.coef_[2]*sub['sub6'] \
-                  + reg.coef_[3]*sub['sub8']
+    sub['demand'] = reg.coef_[0]*sub['sub3']+reg.coef_[1]*sub['sub5']+reg.coef_[2]*sub['sub8']
 
-    df['oof'] = reg.coef_[0]*df['oof3']+reg.coef_[1]*df['oof5']+reg.coef_[2]*df['oof6'] \
-              + reg.coef_[3]*df['oof8']
+    df['oof'] = reg.coef_[0]*df['oof3']+reg.coef_[1]*df['oof5']+reg.coef_[2]*df['oof8']
 
     # postprocesssing
     sub.loc[:,'demand'] = sub['demand'].where(sub['demand']>0,0)
