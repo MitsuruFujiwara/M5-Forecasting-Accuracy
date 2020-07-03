@@ -104,6 +104,9 @@ def main():
 #    df = df.merge(oof7, on=['id','d'],how='left')
     df = df.merge(oof8, on=['id','d'],how='left')
 
+    # drop null
+    df = df[df.notnull()]
+
     # calc weights by ridge regression
     cols_oofs = ['oof3','oof5','oof8']
     reg = Ridge(alpha=1.0,fit_intercept=False,random_state=326)
